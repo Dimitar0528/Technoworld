@@ -1,0 +1,77 @@
+---
+import Icon from "astro-icon";
+---
+<div class="login-promotion-banner">
+    <div class="content">
+        <a href="/account/sign-in">Log in to your account</a>
+        <p>See your order history. Track your delivery easily. Save your favorite products to always have quick access to them.</p>
+    </div>
+    <button class="button">
+    <Icon name="mdi:close"/>
+      </button>
+</div>
+
+<style>
+    .login-promotion-banner{
+    position: fixed;
+    bottom: 0;
+    background: linear-gradient(180deg,rgba(80,80,80,.8) 45%,rgba(0,0,0,.8) 100%);
+    width: 100%;
+    z-index: 999;
+    backdrop-filter: blur(4px);
+    display: flex;
+
+    .content{
+   text-align: center;
+   color: var(--clr-neutral-100);
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: .75rem;
+    padding: 1rem 0 .5rem 1rem;
+    }
+   & a{
+            border: 1px solid white;
+    border-radius: 8px;
+    padding: 8px 22px;
+    width: auto;
+    text-align: center;
+    transition: all .25s;
+    background: var(--clr-accent-500);
+    color: #fff;
+    &:where(:hover,:focus-visible){
+    background: white;
+    color: var(--clr-accent-500);
+    border: 1px solid var(--clr-accent-500);
+    }
+    }
+   & button{
+        cursor: pointer;
+        background-color: transparent;
+        border: transparent;
+    margin-right: 6px;
+    margin-top: 6px;
+    align-self: start;
+    }
+    [astro-icon]{
+        transition: .2s;
+        width: 23px;
+        color: var(--clr-neutral-100);
+        &:where(:hover,:focus-visible){
+            color: var(--clr-neutral-900);
+        }
+    }
+}
+</style>
+
+<script>
+   document.addEventListener("astro:page-load",()=>{
+     const closeButton = document.querySelector(".button") as HTMLButtonElement;
+    const loginPromotionalBanner = document.querySelector(".login-promotion-banner") as HTMLDivElement; if(!loginPromotionalBanner) return;
+    closeButton.addEventListener("click", ()=>{
+        loginPromotionalBanner.style.display = 'none';
+    }) 
+   })
+</script>

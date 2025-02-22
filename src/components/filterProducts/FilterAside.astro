@@ -1,0 +1,87 @@
+---
+import PriceRange from '@components/filterProducts/PriceRange.astro';
+import BrandCheckboxes from '@components/filterProducts/BrandCheckboxes.astro';
+import SpecificationCheckBoxes from '@components/filterProducts/SpecificationCheckBoxes.astro';
+import Icon from 'astro-icon';
+import RatingCheckboxes from './RatingCheckboxes.astro';
+const {products,filteredProducts} = Astro.props;
+---
+    <button class="filters-toggle">Filters</button> 
+    <dialog class="modal">
+        <i class=" fa-xmark | close-btn"> <Icon name="mdi:close"/></i>
+
+      <aside>
+      <h2 style="text-align: center;">Filters</h2>
+      <PriceRange />
+      <BrandCheckboxes products={products} filteredProducts={filteredProducts}/>
+      <SpecificationCheckBoxes products={products} filteredProducts={filteredProducts}/>
+      <RatingCheckboxes products={products} filteredProducts={filteredProducts} />
+      </aside>
+    </dialog>
+
+  <style>
+      body.active-dialog{
+    overflow: hidden;
+  }
+  .close-btn{
+    display: none;
+     background-color: var(--clr-primary-800);
+     color: var(--clr-neutral-100);
+        padding:.3rem;
+        transition: .25s;
+  }
+  .filters-toggle{
+    display: none;
+  }
+  .modal{
+    margin-top:0;
+    display: block;
+    position: relative;
+    inset: 0;
+    border: transparent;
+  }
+  @media(width < 768px){
+ .modal{
+  position: relative;
+  display: none;
+  width: 100%;
+  & aside{
+    display: grid;
+    place-items: center;
+    border: transparent;
+  }
+ }
+ .filters-toggle{
+  cursor: pointer;
+  display: block;
+  width: 250px;
+  margin-top: 1rem;
+  margin-inline: auto;
+  background-color: var(--clr-accent-500);
+  border: transparent;
+  color: var(--clr-neutral-100);
+  border-radius: .5rem;
+  padding: .5rem 1rem;;
+ }
+  }
+  </style>
+  <script>
+      const filterToggle= document.querySelector(".filters-toggle")!;
+  const filtersDialog = document.querySelector(".modal") as HTMLDialogElement;
+  const closeButton = document.querySelector("dialog i") as HTMLButtonElement;
+  
+  filterToggle.addEventListener("click",()=>{
+    filtersDialog.showModal();
+    filtersDialog.style.display= 'block';
+    closeButton.style.display= 'inline';
+    document.body.classList.add("active-dialog")
+  })
+  // "Close" button closes the dialog
+  closeButton.addEventListener("click", () => {
+    filtersDialog.close();
+    closeButton.style.display= 'none';
+        filtersDialog.style.display= 'none';
+    document.body.classList.remove("active-dialog")
+
+});
+  </script>

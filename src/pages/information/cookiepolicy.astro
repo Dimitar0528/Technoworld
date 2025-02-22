@@ -1,0 +1,137 @@
+---
+import { slide } from "astro:transitions";
+import MainLayout from "@layouts/MainLayout.astro";
+---
+<MainLayout title="Cookie Polcy | Tecnhoworld" description="A page showing our cookie policy that users agree on when acceptiong the cookie popup">
+  <div class="cookie-description"  transition:animate={slide ({ duration: '.6s'})}>
+      <p>The site uses cookies. We use cookies to provide you with the best online experience on our site. By accepting these cookies, you allow us and our partners to process personal data on this site and share information about your site activity with third parties.</p> <br>
+      <p>"Cookies" are small text files that sites can use to make the user experience more efficient by saving them in your Internet browser or in your device's memory.</p> <br>
+      <p>We use cookies to personalize content and ads, provide social media features, and analyze traffic. We also share information about your activity on the Site with social media, advertising and analytics partners, who may combine it with other information you provide to them or that they have collected through your use of their services.</p> <br>
+      <p>Without your consent, we can store "cookies" on your device if they are strictly necessary for the operation of the site. All other types of cookies require your consent. The site uses different types of cookies. Some of them are linked to third-party services. </p> <br>
+      <p>You can at any time change/withdraw your consent to the "cookies" used, except for those that are strictly necessary for the operation of the site.</p>
+  </div>
+<table class="cookies-table" transition:animate={slide ({ duration: '.6s'})}>
+  <thead>
+    <th>Name of cookie</th>
+    <th>Type of cookie</th>
+    <th>First or third party</th>
+    <th>Session or persistent</th>
+    <th>Timescale</th>
+    <th>Purpose</th>
+  </thead>
+  <tbody>
+    <tr>
+      <td data-th="Name of cookie">CookieConsent</td>
+      <td data-th="Type of cookie">essential</td>
+      <td data-th="First or third party">First party</td>
+      <td data-th="Session or persistent">Persistent</td>
+      <td data-th="Timescale">1 Month</td>
+      <td data-th="Purpose">Stores the user's cookie consent state for the current domain</td>
+    </tr>
+
+    <tr>
+      <td data-th="Name of cookie">_jwt</td>
+      <td data-th="Type of cookie">essential</td>
+      <td data-th="First or third party">First Party</td>
+      <td data-th="Session or persistent">Persistent</td>
+      <td data-th="Timescale">1 Day</td>
+      <td data-th="Purpose">Stores the user's unique JWT token used for authentication and verification.</td>
+    </tr>
+
+
+  </tbody>
+</table>
+
+<style>
+    .cookie-description{
+        margin: 1rem;
+    }
+    .cookies-table {
+   max-width: 95%;
+   margin-inline: auto;
+    }
+
+.cookies-table th, .cookies-table tr, .cookies-table td {
+  padding:10px;
+  text-align:center;
+  border: 1px solid #eee;
+}
+
+
+.cookies-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  font-family: 'Lato', sans-serif;
+}
+
+.cookies-table th { 
+  background: var(--clr-primary-600); 
+  color: white; 
+  font-weight: bold; 
+}
+
+.cookies-table td[data-th="Quantity"] {
+  background:#272324;
+  color:#fff;
+}
+
+
+
+
+
+@media 
+only screen and (max-width: 760px),
+(min-device-width: 768px) and (max-device-width: 1024px)  {
+
+	/* Force table to not be like tables anymore */
+	.cookies-table table, .cookies-table thead, .cookies-table tbody, .cookies-table th, .cookies-table td, .cookies-table tr { 
+		display: block; 
+	}
+	
+	/* Hide table headers (but not display: none;, for accessibility) */
+	.cookies-table thead tr { 
+		position: absolute;
+		top: -9999px;
+		left: -9999px;
+	}
+	
+	.cookies-table tr { border: 1px solid #ccc; }
+	
+	.cookies-table td { 
+		/* Behave  like a "row" */
+		border: none;
+		border-bottom: 1px solid #eee; 
+		position: relative;
+		padding-left: 50%; 
+	}
+	
+	.cookies-table td:before { 
+		/* Now like a table header */
+		position: absolute;
+		/* Top/left values mimic padding */
+		top: 6px;
+		left: 6px;
+		width: 45%; 
+		padding-right: 10px; 
+		white-space: nowrap;
+	}
+	
+	/*
+	Label the data
+	*/
+	.cookies-table td:nth-of-type(1):before { content: "Name of cookie"; }
+  .cookies-table td:nth-of-type(2):before { content: "Type of cookie"; }
+   .cookies-table td:nth-of-type(3):before { content: "First or third party"; }
+   .cookies-table td:nth-of-type(4):before { content: "Session or persistent"; }
+   .cookies-table td:nth-of-type(5):before { content: "Timescale"; }
+   .cookies-table td:nth-of-type(6):before { content: "Purpose"; }
+  
+}
+
+@media (width < 768px){
+.cookies-table thead{
+      display: none;
+  }
+}
+</style>
+</MainLayout>

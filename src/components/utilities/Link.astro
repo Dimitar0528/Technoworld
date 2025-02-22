@@ -1,0 +1,28 @@
+---
+import { Icon } from 'astro-icon';
+
+interface Props{
+  href:string;
+  displayIcon?: "true" | "";
+  iconClass?: string;
+  body: string;
+  prefetch?:'false' | 'viewport'
+}
+const { href, displayIcon, iconClass, body,prefetch } = Astro.props;
+---
+
+<li>
+  <a href={href} class="nav-item" data-astro-prefetch={prefetch}>
+    {displayIcon === "true" ? <Icon name={`mdi:${iconClass}`} />
+ : undefined}
+    {body}
+  </a>
+</li>
+
+<style>
+ .nav-item{
+    display: flex;
+    align-items: center;
+    gap: .15rem;
+  }
+</style>

@@ -1,0 +1,507 @@
+---
+import Shipping_Address from "db/models/Shipping_Address";
+import CheckoutSteps from "@components/utilities/CheckoutSteps.astro";
+import { verifyToken } from '@api/users/verifyToken';
+import CartProduct from "db/models/Shopping_Cart_Item";
+import MainLayout from "@layouts/MainLayout.astro"; 
+import { slide } from "astro:transitions";
+import Stripe from "stripe";
+import Icon from "astro-icon";
+const userToken = await verifyToken(Astro.request);
+ const {userUUID } = userToken ?? {};
+ if(userUUID === undefined) return Astro.redirect('/');
+    import {getShoppingCartItems} from '@api/shopping_cart/loadUserCart/[user_uuid]'
+ const response = await getShoppingCartItems(userUUID);
+        let totalCartQuantity = 0; 
+        const cartProducts:CartProduct[] = await response.json();
+            cartProducts.forEach(cartProduct => {
+      totalCartQuantity += cartProduct.product_quantity;
+    })
+    const totalPrice = cartProducts.reduce((total, product) => {
+    return total + (product.product_quantity * product.Product.price);
+}, 0);
+
+ import {getShippingAddress} from '@api/shipping_address/loadUserAddress/[user_uuid]'
+ const shippingAddressResponse = await getShippingAddress(userUUID);
+        const user_shipping_address: Shipping_Address = await shippingAddressResponse.json();
+        const {address,city,state,postal_code,country} = user_shipping_address ?? {}
+---
+  <head>
+      <script src="https://js.stripe.com/v3/" defer>
+</script>
+      <meta charset="UTF-8" />
+
+  </head>
+<MainLayout title="Your Checkout Session | Technoworld" description="The page shows the products that are inside the user's cart and are about to be ordered">
+  
+  <main id="main-content">
+  <body>
+  <CheckoutSteps step1="done" step2="active" step3="todo"/> 
+
+<h1>Shipping Form</h1>
+<div class="row  | shipping-form" data-useruuid={userUUID}>
+  <div class="col-65">
+    <div class="container">
+      <form>
+      
+        <div class="row">
+          <div class="col-50">
+            <h3>Billing Address</h3>
+            <label for="fname"><Icon name="mdi:account"/> Full Name</label>
+            <input type="text" autocomplete="on" id="fname" name="fullname" placeholder="John M. Doe" 
+            value={user_shipping_address?.User.first_name !== undefined || user_shipping_address?.User.last_name !== undefined ?
+             user_shipping_address.User.first_name  + ' ' + user_shipping_address.User.last_name : null }>
+            <label for="email"><Icon name="mdi:email-outline"/> Email</label>
+            <input type="text" autocomplete="on" id="email" name="email" placeholder="john@example.com" value={user_shipping_address?.User.email_adress }>
+            <label for="adr"><i class="fa fa-address-card-o"></i> Address</label>
+            <input type="text" autocomplete="on" id="adr" name="address" placeholder="542 W. 15th Street" value={address}>
+
+            <div class="row">
+                <div class="col-50">
+                  <label for="city"><Icon name="mdi:home-city"/> City</label>
+              <input type="text" id="city" name="city" placeholder="New York" value={city}>
+                </div>
+
+              <div class="col-50">
+                <label for="state"> <Icon name="mdi:city"/> State</label>
+                <input type="text" id="state" name="state" placeholder="NY" value={state}>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col-50">
+                <label for="zip"> <Icon name="mdi:counter"/> ZIP/Postal Code</label>
+                <input type="text" id="zip" name="zip" placeholder="10001" value={postal_code}> 
+              </div>
+              
+              <div class="col-50">
+                <label for="country">  <Icon name="mdi:web"/> Country</label>
+                <input type="text" autocomplete="on" id="country" name="country" placeholder="USA" value={country}>
+              </div>
+            </div>
+
+            
+          </div>
+        </div>
+        
+        <div class="btns">
+          <input type="submit" value="Continue to checkout" class="btn">
+          <input type="submit" value="Update address" class="update-btn">
+        </div>
+      </form>
+    </div>
+  </div>
+  <div class="col-30">
+                <div class="container">
+                    <h4>Your Cart <span class="cart-quantity" style="color:black"><i class="fa fa-shopping-cart"></i> <b>{totalCartQuantity > 1 ? totalCartQuantity : cartProducts.length}</b></span></h4>
+                    {cartProducts.map(cartProduct => {
+                              const elements:CartProduct[] = [];
+                        for(let i = 0; i< cartProduct.product_quantity; i++){
+                    elements.push(
+                        <div>
+                            <p> <img src={cartProduct.Product.image_src} alt={cartProduct.Product.name}/> 
+                              <a href={`/products/getProduct/${cartProduct.Product.category}/${cartProduct.Product.uuid}`}>{cartProduct.Product.name.slice(0,30)}</a> 
+                              <span class="price-tag | product-price-tag"><span class="price">{cartProduct.Product.price}</span></span>
+                              </p>
+                              
+                        </div>
+                        )
+                    }
+                    return elements
+        })}
+                    <hr />
+                    <p style="font-weight: bold; margin-top: .5rem;">Total: 
+                      <span class="price-tag"><span class="price | total-price ">{totalPrice}</span></span>
+                      </p>
+                </div>
+
+                     <div class="container | coupon-container">
+                    <h2>Enter Coupon code</h2>
+                    <p>Enter a coupon code for 6% off of every product</p>
+                    <input type="text" name="coupon" id="coupon" class="coupon" placeholder="Enter coupon code">
+                    <input type="submit" value="Submit Coupon" class="submit-coupon" >
+                </div>
+                
+            
+</div>
+</main>
+
+</body>
+
+    </MainLayout>
+
+    <script type="module" define:vars={{cartProducts,totalPrice,totalCartQuantity,userUUID}}>
+    import { convertCurrencyValue } from "/src/scripts/convertCurrency.ts";
+document.addEventListener("astro:page-load", () => {
+ function setTotalPriceAmount() {
+  const selectedCurrency = localStorage.getItem('selectedCurrency') || 'usd';
+  const conversionFactors = {
+    'bgn': 1.80507,
+    'eur': 0.9222300935,
+    'usd': 1, 
+  };
+
+  const conversionFactor = conversionFactors[selectedCurrency];
+  const convertedTotalPrice = Number((totalPrice * conversionFactor).toFixed(0));
+
+  localStorage.setItem("total_price", JSON.stringify(convertedTotalPrice));
+}
+
+      const currencySelector = document.querySelector('.currency-selector');
+      currencySelector.addEventListener("change",setTotalPriceAmount);
+   setTotalPriceAmount();
+
+     const selectedCurrency = localStorage.getItem('selectedCurrency') || 'usd';
+
+  //coupon code functionality
+  let isCouponActivated = false;
+  let discountedPrices = []; // Array to store discounted prices
+
+  const coupon_codes = ['WRLD999'];
+  const couponCodeInput = document.querySelector(".coupon");
+  const submitCouponCodeBtn = document.querySelector(".submit-coupon");
+  const pricesTags = document.querySelectorAll(".product-price-tag");
+  const priceTagsArray =  Array.from(pricesTags);
+  const currencies = priceTagsArray.map(priceTag => priceTag.textContent.split(" ")[1]);
+  const notificationInfo = document.querySelector('.toast-notification-info');
+  const totalPriceTag = document.querySelector(".total-price");
+
+  submitCouponCodeBtn.addEventListener("click",()=>{
+    if(couponCodeInput.value === '') {
+      submitCouponCodeBtn.removeAttribute("data-notification-btn");
+      return alert("Enter a coupon code!");
+    }
+    
+if (!coupon_codes.map(code => code.toLowerCase()).includes(couponCodeInput.value.toLowerCase())) 
+ return alert("There is no such coupon code!");
+
+if(isCouponActivated !== false) {
+  const notificationTitle = document.querySelector('.toast-notification-title');
+  notificationTitle.textContent = 'Ooops!'
+  notificationInfo.textContent = 'Coupon code already activated!';
+  return;
+};
+
+        submitCouponCodeBtn.setAttribute("data-notification-btn",'');
+        notificationInfo.textContent = 'Coupon code activated!';
+        couponCodeInput.value = '';           
+        const totalSum = priceTagsArray.reduce((sum, priceTag,index) => {
+        const price = Number(priceTag.textContent.split(" ")[0]);
+        const discountedPrice = Number((price * 0.94).toFixed(0));
+        priceTag.textContent = `${discountedPrice} ${currencies[0]}`
+        discountedPrices[index] = discountedPrice; // Store discounted prices
+        return sum + discountedPrice;
+      }, 0);
+      totalPriceTag.textContent = `${totalSum} ${currencies[0]}`
+      isCouponActivated = true;
+        localStorage.setItem("total_price",JSON.stringify(totalSum))
+
+  })
+
+  localStorage.setItem("order_items",totalCartQuantity);
+          const stripe = Stripe("pk_test_51MWJzQBPlfaVkC5QNcfh131Z6aj0WrUpLfieMkKfAUgV2lvY76r3roo17cx29lX8UpqNEKLwhxlnW8opiX8YQuU200BOseCMVi");
+            const userUUID = (document.querySelector(".shipping-form")).dataset.useruuid
+            const checkoutSubmitBtn = document.querySelector(".btn");
+            const updateBtn = document.querySelector(".update-btn");
+
+             function getShippingAddressValues() {
+      return {
+        fullName: document.getElementById("fname").value,
+        email: document.getElementById("email").value,
+        address: document.getElementById("adr").value,
+        city: document.getElementById("city").value,
+        state: document.getElementById("state").value,
+        postal_code: document.getElementById("zip").value,
+        country: document.getElementById("country").value,
+      };
+    }
+    
+  if (updateBtn && updateBtn.hasEventListener) return
+  updateBtn.hasEventListener = true;
+
+  updateBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const shippingAddressValues = getShippingAddressValues();
+    const shippingAddresses = {
+      user_uuid: userUUID,
+      ...shippingAddressValues,
+    };
+
+    try {
+      const response = await fetch(`/api/shipping_address/updateShippingAddress/${userUUID}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shippingAddresses),
+      });
+
+      if (response.ok) {
+        alert('Congratulations! You have successfully updated your shipping address!');
+        location.reload();
+      } else {
+        const message = await response.json();
+        alert(message.error);
+      }
+    } catch (error) {
+      console.error('An error occurred:', error);
+    }
+  });
+
+    checkoutSubmitBtn.addEventListener("click", async (e)=> {
+        e.preventDefault();
+        const shippingAddressValues = getShippingAddressValues();
+      // Check if any input field is empty
+      if (!Object.values(shippingAddressValues).every((value) => value.trim())) {
+        return alert("Please fill in all fields before continuing.");
+      }
+
+         const shipping_adresses = {
+            user_uuid: userUUID,
+             ...shippingAddressValues,
+         }
+         try {
+      const response = await fetch(`/api/shipping_address/createShippingAddress`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(shipping_adresses),
+      });
+
+      if (response.ok) {
+        alert("Congratulations! You will now be redirected to the payment page!");
+      } else {
+        console.error("Error adding product:", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+      const lineItems = cartProducts.map((item,index) => {
+  const adjustedPriceText = convertCurrencyValue(item.Product.price);
+  const match = adjustedPriceText.match(/\d+/);
+  const adjustedPrice = match ? Number(match[0]) : 0;
+  
+  return {
+    price_data: {
+      currency: `${selectedCurrency}`,
+      product_data: {
+        name: item.Product.name,
+      },
+      unit_amount: discountedPrices[index] === undefined ? adjustedPrice * 100 : discountedPrices[index] * 100, // Adjusted price multiplied by 100 for Stripe format
+    },
+    quantity: item.product_quantity,
+  };
+});
+
+const paymentObj = {
+  currency: selectedCurrency,
+  lineItems: lineItems,
+  userUUID: userUUID,
+};
+
+const response = await fetch(`/api/shipping_address/createPayment`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify(paymentObj),
+});
+
+const data = await response.json();
+await stripe.redirectToCheckout({ sessionId: data.sessionId });
+});
+});
+
+    </script>
+
+<style>
+  .price-tag{
+    font-size: 1.05rem;
+    color: black;
+  }
+  [astro-icon]{
+    width: 20px;
+    margin-bottom: -.25rem;
+  }
+  p{
+    display: flex; 
+    justify-content: center;
+    gap: .6rem;
+  }
+  img{
+    width: 40px;
+  }
+#main-content{
+  margin-inline: 2rem;
+}
+h1 {
+  text-align: center;
+  margin-block: 1.5rem;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -16px;
+  
+}
+
+.col-30 {
+  -ms-flex: 30%; 
+  flex: 30%;
+}
+
+.col-50 {
+  -ms-flex: 50%; 
+  flex: 50%;
+}
+
+.col-65 {
+  -ms-flex: 65%; 
+  flex: 65%;
+}
+
+.col-30,
+.col-50,
+.col-65 {
+  padding: 0 16px;
+}
+.container {
+  background-color: hsl(0 0% 98% /.5);
+  padding: 5px 20px 15px 20px;
+  border: 1px solid lightgrey;
+  border-radius: 2rem 0rem ;
+  & a{
+    color: var(--clr-primary-600);
+    text-align: center;
+    &:where(:hover,:focus-visible){
+      color: var(--clr-accent-400);
+    }
+  }
+  & h4{
+    font-size: 1.25rem;
+    margin-block: .75rem;
+  }
+}
+
+.coupon-container{
+  background-color: var(--clr-accent-500);
+  border-radius: 1rem;
+  color: var(--clr-neutral-100);
+  margin-top: 2.5rem;
+ display: flex;
+ flex-direction: column;
+ gap: 1rem;
+ align-items: center;
+ text-align: center;
+ & h2{
+  margin-top: .5rem;
+ }
+ & input[type='text']{
+  margin-bottom: .75rem;
+  border-radius: 100vw;
+ }
+ .submit-coupon{
+  cursor: pointer;
+  padding: 1rem ;
+  border: 1px solid #333;
+  color: #333;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  transition: all .2s ease-in-out;
+  
+  &:hover {
+    background-color: var(--clr-secondary-100);
+    border: 1px solid var(--clr-secondary-100);
+    color: var(--clr-neutral-900);
+    border-radius: 30px;
+  }
+}
+}
+input[type=text] {
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 12px;
+  border: 1px solid var(--clr-primary-600);
+  border-radius: 3px;
+  caret-color: var(--clr-accent-400);
+  &:where(:focus-visible){
+      outline: 2px solid var(--clr-primary-600);
+
+  }
+}
+
+label {
+  margin-bottom: 10px;
+  display: block;
+}
+
+.icon-container {
+  margin-bottom: 20px;
+  padding: 7px 0;
+  font-size: 24px;
+}
+.btns{
+  display: flex;
+  gap: 1rem;
+  align-items: center;;
+  @media(width < 600px){
+    flex-direction: column;
+  }
+}
+.btn,.update-btn {
+  transition: .25s;
+  background-color: var(--clr-primary-500);
+  color: white;
+  padding: 12px;
+  margin: 10px 0;
+  border: none;
+  width: 100%;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 17px;
+  border: 2px solid var(--clr-accent-500);
+}
+
+.btn:where(:hover,:focus) {
+  background-color:  var(--clr-secondary-200);
+  color: var(--clr-neutral-900);
+}
+.update-btn{
+  background-color: var(--clr-secondary-100);
+  color: var(--clr-neutral-900);
+  width: 45%;
+  &:where(:hover,:focus-visible){
+  color: var(--clr-neutral-100);
+  background-color: var(--clr-primary-700);
+  border: 2px solid var(--clr-primary-700);
+  }
+   @media(width < 600px){
+    width: 100%;
+  }
+}
+a {
+  color: #2196F3;
+}
+
+hr {
+  border: 1px solid lightgrey;
+}
+
+span.cart-quantity {
+  float: right;
+  color: var(--clr-primary-600);
+}
+
+/* Responsive layout */
+@media (max-width: 1000px) {
+  .row {
+    flex-direction: column-reverse;
+  }
+  .col-30 {
+    margin-bottom: 20px;
+  }
+}
+</style>

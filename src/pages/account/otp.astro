@@ -1,0 +1,180 @@
+---
+import MainHead from "@layouts/MainHead.astro";
+export const prerender = true;
+
+---
+<MainHead title="OTP Verification | Technoworld" description="In this page the user has to enter the otp sent to him via email in order to reset its password" />
+<body>
+    <h1 style="margin-bottom: 1rem;">Enter OTP</h1>
+    <div class="otp-field">
+        <input type="text" maxlength="1" />
+        <input type="text" maxlength="1" />
+        <input class="space" type="text" maxlength="1" />
+        <input type="text" maxlength="1" />
+        <input type="text" maxlength="1" />
+        <input type="text" maxlength="1" />
+    </div>
+</body>
+
+<style >
+    body {
+    margin: 0;
+    font-family: "Poppins", sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background: #282a36;
+    height: 100vh;
+    color: #fff;
+}
+
+.otp-field {
+    display: flex;
+}
+
+.otp-field input {
+    width: 2.5rem;
+    font-size: 32px;
+    padding: 10px;
+    text-align: center;
+    border-radius: 5px;
+    margin: 2px;
+    border: 2px solid #55525c;
+    background: #21232d;
+    font-weight: bold;
+    color: #fff;
+    outline: none;
+    transition: all 0.1s;
+}
+
+.otp-field input:focus {
+    border: 2px solid #a527ff;
+    box-shadow: 0 0 2px 2px #a527ff6a;
+}
+
+.disabled {
+    opacity: 0.5;
+}
+
+.space {
+    margin-right: 1rem !important;
+}
+
+</style>
+
+<script>
+        document.addEventListener("DOMContentLoaded", async ()=> await sendOTP())
+
+   const inputs: NodeListOf<HTMLInputElement> = document.querySelectorAll(".otp-field input");
+    const email = localStorage.getItem("email");
+
+inputs.forEach((input, index) => {
+    input.dataset.index = index.toString();
+    input.addEventListener("keyup", handleOtp);
+    input.addEventListener("paste", handleOnPasteOtp);
+});
+async function sendOTP() {
+  try {
+    const response = await fetch('/api/users/sendEmail/sendOTP', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email }),
+    });
+    if (response.ok) {
+      const otp = await response.json();
+      localStorage.setItem("otp",otp)
+    alert("An one time password(OTP) has been sent to the provided email address for verification! Please enter it in the input below");
+    } else {
+      alert('Failed to send OTP! Reason: No email address provided!');
+      location.reload();
+    }
+  } catch (error) {
+    console.error(error);
+  }
+} 
+
+
+function handleOtp(e: KeyboardEvent) {
+    const input = e.target as HTMLInputElement;
+    let value = input.value;
+    let isValidInput = value.match(/[0-9a-z]/gi);
+    input.value = "";
+    input.value = isValidInput ? value[0] : "";
+
+    let fieldIndex = parseInt(input.dataset.index!);
+    if (fieldIndex < inputs.length - 1 && isValidInput) {
+        (inputs[fieldIndex + 1] as HTMLInputElement).focus();
+    }
+    if (e.key === "ArrowLeft" && fieldIndex > 0) {
+        (inputs[fieldIndex - 1] as HTMLInputElement).focus();
+    }
+
+    if (e.key === "ArrowRight" && fieldIndex < inputs.length - 1) {
+        (inputs[fieldIndex + 1] as HTMLInputElement).focus();
+    }
+
+    if (e.key === "Backspace" && fieldIndex > 0) {
+        (inputs[fieldIndex - 1] as HTMLInputElement).focus();
+    }
+
+    if (fieldIndex === inputs.length - 1 && isValidInput) {
+        submit();
+    }
+}
+
+function handleOnPasteOtp(e: ClipboardEvent) {
+    const data = e.clipboardData!.getData("text");
+    const value = data.split("");
+    if (value.length === inputs.length) {
+        inputs.forEach((input, index) => (input.value = value[index]));
+       setTimeout(() => {
+        submit();
+       }, 400);
+    }
+}
+async function getUserInfo(){
+         const response = await fetch(`/api/users/getUser/${email}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({userEmail: email}),
+        });
+
+      const user = await response.json();
+      const {uuid} = user
+      location.href = `/account/profile/${uuid}?fp`;
+
+}
+function submit() {
+    const forgotPasswordQueryParam = location.href.split('?')[1];
+    let enteredOTP = '';
+    inputs.forEach((input) => {
+        enteredOTP += input.value;
+    });
+    const allInputsFilled = Array.from(inputs).every(input => input.value.length > 0);
+    const sendOTP = localStorage.getItem("otp")
+ if(!allInputsFilled) return;
+       localStorage.removeItem("email");
+      localStorage.removeItem('otp');
+    // Validate the entered OTP
+    if (enteredOTP === sendOTP && forgotPasswordQueryParam) {
+        getUserInfo();
+    } else if(enteredOTP === sendOTP){
+    location.href = '/account/sign-in'
+    }
+     else {
+        alert('Incorrect OTP. Please try again.');
+        (inputs[0] as HTMLInputElement).focus();
+        inputs.forEach((input) => {
+            input.value = '';
+            input.disabled = false;
+            input.classList.remove('disabled');
+        });
+    }
+}
+
+</script>

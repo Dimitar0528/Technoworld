@@ -1,0 +1,508 @@
+---
+const {product_uuid} = Astro.props;
+---
+<head>
+      <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" />
+</head>
+<div class="wrapper" data-product-uuid={product_uuid}>
+  <div class="master">
+    <h1>Review And rating</h1>
+    <h2>How was your experience about our product?</h2>
+   <!-- <span class="fa-stack">
+   <i class="far fa-circle fa-stack-2x"></i>
+   <i class="fab fa-twitter fa-stack-1x"></i>
+   </span> -->
+    <div class="rating-component">node -v
+      <div class="status-msg">
+        <label>
+          <input
+            class="rating_msg"
+            type="hidden"
+            name="rating_msg"
+            value=""
+          />
+        </label>
+      </div>
+      <div class="stars-box">
+        <i
+          class="star fa fa-star"
+          title="1 star"
+          data-message="Poor 💩"
+          data-value="1"
+        ></i>
+        <i
+          class="star fa fa-star"
+          title="2 stars"
+          data-message="Bad 👎"
+          data-value="2"
+        ></i>
+        <i
+          class="star fa fa-star"
+          title="3 stars"
+          data-message="Average 😐"
+          data-value="3"
+        ></i>
+        <i
+          class="star fa fa-star"
+          title="4 stars"
+          data-message="Amazing 😀"
+          data-value="4"
+        ></i>
+        <i
+          class="star fa fa-star"
+          title="5 stars"
+          data-message="Perfect 🤩"
+          data-value="5"
+        ></i>
+      </div>
+      <div class="starrate">
+        <label>
+          <input
+            class="ratevalue"
+            type="hidden"
+            name="rate_value"
+            value=""
+          />
+        </label>
+      </div>
+    </div>
+
+    <div class="feedback-tags">
+      <div class="tags-container" data-tag-set="1">
+        <div class="question-tag">Why was your experience so poor?</div>
+      </div>
+      <div class="tags-container" data-tag-set="2">
+        <div class="question-tag">Why was your experience bad?</div>
+      </div>
+
+      <div class="tags-container" data-tag-set="3">
+        <div class="question-tag">
+          Why was your experience average?
+        </div>
+      </div>
+      <div class="tags-container" data-tag-set="4">
+        <div class="question-tag">Why was your experience amazing?</div>
+      </div>
+
+      <div class="tags-container" data-tag-set="5">
+        <div class="make-compliment">
+          <div class="compliment-container">
+          Why was your experience perfect?
+          </div>
+        </div>
+      </div>
+
+      <div class="tags-box">
+        <textarea
+          class="tag form-control"
+          name="comment"
+          id="inlineFormInputName"
+          placeholder="please enter your review"
+        ></textarea>
+      </div>
+    </div>
+
+    <div class="button-box">
+      <input
+        type="submit"
+        class="done btn btn-warning"
+        disabled="disabled"
+        value="Add review"
+      />
+    </div>
+
+    <div class="submited-box">
+      <div class="loader"></div>
+      <div class="success-message">
+        Thank you! Your review has been sent!
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+    <script>
+document.addEventListener("astro:page-load", () => {
+  const starEls = document.querySelectorAll(".rating-component .star");
+
+  starEls.forEach((star) => {
+    star.addEventListener("mouseover", function () {
+      const onStar = parseInt((this as HTMLElement).dataset.value!, 10);
+      const stars = (this as HTMLElement).parentNode!.querySelectorAll("i.star");
+
+      stars.forEach((star, index) => {
+        if (index < onStar) {
+          star.classList.add("hover");
+        } else {
+          star.classList.remove("hover");
+        }
+      });
+    });
+
+    star.addEventListener("mouseout", function () {
+      const stars = (this as HTMLElement).parentNode!.querySelectorAll("i.star");
+
+      stars.forEach((star) => {
+        star.classList.remove("hover");
+      });
+    });
+  });
+
+  const starBoxEls = document.querySelectorAll(".rating-component .stars-box .star");
+
+  starBoxEls.forEach((star) => {
+    star.addEventListener("click", function () {
+      const onStar = parseInt((this as HTMLElement).dataset.value!, 10);
+      localStorage.setItem("product_rating", JSON.stringify(onStar));
+      const stars = (this as HTMLElement).parentNode!.querySelectorAll("i.star");
+      const ratingMessage = (this as HTMLElement).dataset.message;
+
+      let msg = onStar > 1 ? onStar : onStar.toString();
+
+      (document.querySelector(
+        ".rating-component .starrate .ratevalue"
+      ) as HTMLInputElement).value = String(msg);
+
+      (document.querySelector(".button-box .done") as HTMLElement).style.display = "block";
+
+      (document.querySelector(".button-box .done") as HTMLElement).removeAttribute("disabled");
+
+      stars.forEach((star, index) => {
+        star.classList.remove("selected");
+      });
+
+      for (let i = 0; i < onStar; i++) {
+        stars[i].classList.add("selected");
+      }
+
+      const rateValueElement = document.querySelector(
+        ".rating-component .starrate .ratevalue"
+      ) as HTMLInputElement;
+      if (rateValueElement) {
+        rateValueElement.value = String(msg);
+      }
+      (document.querySelector(".status-msg") as HTMLElement).innerHTML = ratingMessage!;
+
+      document.querySelectorAll("[data-tag-set]").forEach((tagSet) => {
+        (tagSet as HTMLElement).style.display = "none";
+      });
+
+      (document.querySelector(`[data-tag-set="${onStar}"]`) as HTMLElement).style.display =
+        "block";
+    });
+  });
+
+  const tag = document.querySelector('.feedback-tags') as HTMLElement; if(!tag) return;
+  tag.addEventListener("click", function () {
+    const choosedTagsLength =
+      (this as HTMLElement).parentNode!.querySelectorAll("input").length + 1;
+
+    if ((this as HTMLElement).classList.contains("choosed")) {
+      (this as HTMLElement).classList.remove("choosed");
+    } else {
+      (this as HTMLElement).classList.add("choosed");
+      (document.querySelector(".button-box .done") as HTMLElement).removeAttribute("disabled");
+    }
+
+    if (choosedTagsLength <= 0) {
+      (document.querySelector(".button-box .done") as HTMLElement).setAttribute("enabled", "false");
+    }
+  });
+
+  (document.querySelector(".done") as HTMLElement).addEventListener("click", async () => {
+    const review_text = (document.getElementById(
+      "inlineFormInputName"
+    ) as HTMLInputElement)
+    const isLoggedIn = localStorage.getItem("isLoggedIn"); if(isLoggedIn === 'false') return alert("Log in in order to leave a review for this product!")
+    const rating = localStorage.getItem("product_rating");
+    const chatbox = document.querySelector(".chatbox") as HTMLElement; if (!chatbox) return;
+    const wrapper = document.querySelector(".wrapper") as HTMLElement;
+    const user_uuid = chatbox.getAttribute("data-user-uuid");
+    const product_uuid = wrapper.getAttribute("data-product-uuid");
+    const reviewObj = {
+   user_uuid:user_uuid,
+   product_uuid:product_uuid,
+   review_text:review_text.value,
+   rating:rating,
+    }
+    await fetch('/api/product_reviews/createReview', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(reviewObj),
+          });
+    (document.querySelector(".rating-component") as HTMLElement).style.display = "none";
+    (document.querySelector(".feedback-tags") as HTMLElement).style.display = "none";
+    (document.querySelector(".button-box") as HTMLElement).style.display = "none";
+
+    const submitedBox = (document.querySelector(".submited-box") as HTMLElement);
+    submitedBox.style.display = "block";
+
+    (submitedBox.querySelector(".loader") as HTMLElement).style.display = "block";
+
+    setTimeout(() => {
+      (submitedBox.querySelector(".loader") as HTMLElement).style.display = "none";
+      (submitedBox.querySelector(".success-message") as HTMLElement).style.display =
+        "block";
+        localStorage.removeItem('product_rating')
+    }, 1500);
+    setTimeout(() => {
+      location.reload();
+    }, 2000);
+  });
+});
+
+    </script>
+ <style>
+      .master {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding-top: 40px;
+      }
+
+      h1 {
+        font-size: 20px;
+        margin-bottom: 20px;
+      }
+
+      h2 {
+        line-height: 160%;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      .rating-component {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .rating-component .status-msg {
+        margin-bottom: 10px;
+        text-align: center;
+      }
+
+      .rating-component .status-msg strong {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .rating-component .stars-box {
+        align-self: center;
+        margin-bottom: 15px;
+      }
+
+      .rating-component .stars-box .star {
+        color: #ccc;
+        cursor: pointer;
+      }
+
+      .rating-component .stars-box .star.hover {
+        color: var(--clr-accent-400);
+      }
+
+      .rating-component .stars-box .star.selected {
+        color: var(--clr-accent-400);
+      }
+
+      .feedback-tags .tags-container {
+        display: none;
+      }
+
+      .feedback-tags .tags-container .question-tag {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+
+      .feedback-tags .tags-box {
+        display: flex;
+        text-align: center;
+        justify-content: center;
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+    .tags-box textarea{
+      resize: none;
+      width: clamp(200px,30vw,100vw);
+      height: 60px;
+    }
+      .feedback-tags .tags-container .make-compliment {
+        padding-bottom: 20px;
+      }
+
+      .feedback-tags .tags-container .make-compliment .compliment-container {
+        align-items: center;
+        color: #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .feedback-tags
+        .tags-container
+        .make-compliment
+        .compliment-container
+        .fa-smile-wink {
+        color: var(--clr-accent-400);
+        cursor: pointer;
+        font-size: 40px;
+        margin-top: 15px;
+        animation-name: compliment;
+        animation-duration: 2s;
+        animation-iteration-count: 1;
+      }
+
+      .feedback-tags
+        .tags-container
+        .make-compliment
+        .compliment-container
+        .list-of-compliment {
+        display: none;
+        margin-top: 15px;
+      }
+
+      .feedback-tags .tag {
+        border: 1px solid var(--clr-accent-400);
+        border-radius: 5px;
+        color: var(--clr-accent-400);
+        cursor: pointer;
+        margin-bottom: 2rem;
+        margin-left: 10px;
+        padding: 10px;
+      }
+
+      .feedback-tags .tag.choosed {
+        background-color: var(--clr-accent-400);
+        color: #fff;
+      }
+
+      .list-of-compliment ul {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .list-of-compliment ul li {
+        align-items: center;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        margin-bottom: 10px;
+        margin-left: 20px;
+        min-width: 90px;
+      }
+
+      .list-of-compliment ul li:first-child {
+        margin-left: 0;
+      }
+
+      .list-of-compliment ul li .icon-compliment {
+        align-items: center;
+        border: 2px solid var(--clr-accent-400);
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        height: 70px;
+        margin-bottom: 15px;
+        overflow: hidden;
+        padding: 0 10px;
+        transition: 0.5s;
+        width: 70px;
+      }
+
+      .list-of-compliment ul li .icon-compliment i {
+        color: var(--clr-accent-400);
+        font-size: 30px;
+        transition: 0.5s;
+      }
+
+      .list-of-compliment ul li.actived .icon-compliment {
+        background-color: var(--clr-accent-400);
+        transition: 0.5s;
+      }
+
+      .list-of-compliment ul li.actived .icon-compliment i {
+        color: #fff;
+        transition: 0.5s;
+      }
+
+      .button-box .done {
+        background-color: var(--clr-accent-400);
+        border: 1px solid var(--clr-accent-400);
+        border-radius: 3px;
+        color: #fff;
+        cursor: pointer;
+        display: none;
+        min-width: 100px;
+        padding: 10px;
+      }
+
+      .button-box .done:disabled,
+      .button-box .done[disabled] {
+        border: 1px solid #ff9b95;
+        background-color: #ff9b95;
+        color: #fff;
+        cursor: initial;
+      }
+
+      .submited-box {
+        display: none;
+        padding: 20px;
+      }
+
+      .submited-box .loader,
+      .submited-box .success-message {
+        display: none;
+      }
+
+      .submited-box .loader {
+        border: 5px solid transparent;
+        border-top: 5px solid #4dc7b7;
+        border-bottom: 5px solid var(--clr-accent-400);
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes compliment {
+        1% {
+          transform: rotate(0deg);
+        }
+
+        25% {
+          transform: rotate(-30deg);
+        }
+
+        50% {
+          transform: rotate(30deg);
+        }
+
+        75% {
+          transform: rotate(-30deg);
+        }
+
+        100% {
+          transform: rotate(0deg);
+        }
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>

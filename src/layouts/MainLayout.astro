@@ -1,0 +1,186 @@
+---
+import { verifyToken } from "@api/users/verifyToken";
+
+const userToken = await verifyToken(Astro.request);
+const { userRole, userUUID } = userToken ?? {};
+const cookie = Astro.request.headers.get("cookie");
+const jwtCookie = cookie?.includes("_jwt");
+interface Props {
+  title: string;
+  description: string;
+}
+
+const { title, description } = Astro.props;
+import Header from "@components/Header/Header.astro";
+import Footer from "@components/Footer/Footer.astro";
+import Newsletter from "@components/Newsletter.astro";
+import MainHead from "./MainHead.astro";
+import Chatbot from "@components/Chatbot.astro";
+import ScrollToTopButton from "@components/utilities/ScrollToTopButton.astro";
+import ToastNotification from "@components/utilities/ToastNotification.astro";
+---
+
+<!doctype html>
+<html lang="en">
+  <MainHead title={title} description={description} />
+  <body>
+    <!-- Scroll tracker -->
+    <div class="scroll-tracker"></div>
+    <Header />
+    <slot />
+    <ScrollToTopButton />
+    <Chatbot />
+    <Newsletter />
+    <Footer />
+    {userUUID !== undefined ? <ToastNotification /> : null}
+    <style is:global>
+      .cta-admin-buttons {
+        display: none;
+        justify-content: center;
+        margin-block: 1rem;
+
+        & button {
+          background: transparent;
+          border: transparent;
+          cursor: pointer;
+          font-size: 1rem;
+          transition: 0.3s;
+          font-family: "Poppins";
+        }
+
+        & a,
+        button {
+          text-align: center;
+          margin-inline: 1rem;
+          color: black;
+          color: var(--clr-neutral-100);
+          background-color: var(--clr-primary-700);
+          padding: 0.3rem 1.5rem;
+          border-radius: 1.5rem 0 1.5rem 0;
+          outline: 2px solid var(--clr-primary-700);
+
+          &:where(:hover, :focus-visible) {
+            background-color: var(--clr-secondary-200);
+            color: var(--clr-neutral-900);
+            outline: 2px solid var(--clr-primary-700);
+          }
+        }
+      }
+
+      .product-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(min(300px, 100%), 0.3fr)
+        );
+        max-width: 1240px;
+        margin-inline: auto;
+        place-content: center;
+
+        @media (width < 900px) {
+          grid-template-columns: repeat(auto-fit, minmax(250px, 0.9fr));
+        }
+      }
+
+      .product-category {
+        background-color: var(--clr-secondary-100);
+        display: inline-block;
+        padding-inline: 0.5rem;
+        margin-top: 0.5rem;
+        text-transform: uppercase;
+        color: var(--clr-accent-600);
+        font-weight: var(--fw-bold);
+      }
+
+      .product-link {
+        position: relative;
+        text-decoration: none;
+        color: var(--clr-neutral-900);
+        outline: 0;
+        text-align: center;
+      }
+
+      .product-name {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        word-wrap: break-word;
+        text-overflow: ellipsis;
+        font-size: clamp(0.95rem, 0.95vw, 1.5rem);
+        margin-inline: 0.4rem;
+        font-weight: var(--fw-normal);
+        margin-block: 0.5rem;
+        text-transform: capitalize;
+        text-align: center;
+      }
+
+      .price-tag {
+        font-size: 1.2em;
+        color: var(--clr-accent-500);
+      }
+
+      .title {
+        text-shadow: 2px 2px var(--clr-accent-500);
+        margin-bottom: 1.5rem;
+        color: var(--clr-neutral-100);
+      }
+
+      [astro-icon] {
+        width: 15px;
+      }
+
+      .remove-btn {
+        transition: 0.25s;
+        cursor: pointer;
+        padding: 0;
+        float: right;
+        background-color: var(--clr-secondary-200);
+        border: transparent;
+        padding: 0.35rem;
+        border-radius: 0.5rem;
+
+        &:where(:hover, :focus-visible) {
+          background-color: var(--clr-primary-600);
+          color: var(--clr-neutral-100);
+        }
+      }
+      .note {
+        font-size: 0.85rem;
+        @media (width < 768px) {
+          text-align: center;
+        }
+      }
+    </style>
+    <script src="/src/scripts/dropdowns.ts"></script>
+
+    <script define:vars={{ jwtCookie, userRole }}>
+      if (!jwtCookie) {
+        localStorage.setItem("isLoggedIn", "false");
+      }
+      function createServiceWorker() {
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.register("/service-worker.js");
+        }
+      }
+      createServiceWorker();
+      document.addEventListener("astro:after-swap", createServiceWorker);
+      document.addEventListener("astro:page-load", async () => {
+        const adminBtnContainers =
+          document.querySelectorAll(".cta-admin-buttons");
+        if (!adminBtnContainers) return;
+
+        adminBtnContainers.forEach((adminBtnContainer) => {
+          if (userRole === "admin") adminBtnContainer.style.display = "flex";
+        });
+
+        const deleteButton = document.querySelector(".main-delete-btn");
+        if (!deleteButton) return;
+
+        // Remove existing event listener before adding a new one
+        deleteButton.removeEventListener("click", handleDeleteAllProducts);
+        deleteButton.addEventListener("click", handleDeleteAllProducts);
+      });
+    </script>
+  </body>
+</html>

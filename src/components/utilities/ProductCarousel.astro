@@ -1,0 +1,91 @@
+---
+const {img_src,img_src_2,img_src_3} = Astro.props;
+interface Props{
+    img_src:string;
+    img_src_2:string;
+    img_src_3:string;
+}
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .carousel-container {
+            overflow-x: hidden;
+            white-space: nowrap;
+            max-width: 80%;
+            margin: auto;
+        }
+
+        .image-carousel {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .carousel-image {
+            width: clamp(70px, 5.5vw, 120px);
+            aspect-ratio: 1/1;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 1rem;
+        }
+        .active{
+      border: 2px solid var(--clr-accent-400);
+        }
+                #selectedImage {
+        transition: transform 1s linear;
+    }
+    </style>
+</head> 
+<body>
+
+<div class="carousel-container">
+    <div class="image-carousel" id="imageCarousel">
+        <img src={img_src} alt="Product 1" class="carousel-image | active" loading="lazy" >
+        <img src={img_src_2} alt="Product 2" class="carousel-image" loading="lazy"  >
+        <img src={img_src_3} alt="Product 3" class="carousel-image"  loading="lazy">
+
+    </div>
+</div>
+<script is:inline>
+    document.addEventListener("astro:page-load", () => {
+
+        var options = {
+            width: 500,
+            zoomWidth: 450,
+            offset: { vertical: 5, horizontal: 50 },
+            zoomStyle: 'outline:2px solid var(--clr-accent-600); z-index:99',
+            zoomLensStyle: "opacity: 0.3;background-color: black; cursor: pointer",
+
+        };
+     
+        const zoomedImg = new ImageZoom(document.querySelector(".img-zoom-container"), options);
+        if(typeof zoomedImg?._getInstanceInfo !== 'function') return;
+        const zoomedImgElement = zoomedImg?._getInstanceInfo()?.data?.zoomedImg?.element;
+        const selectedImage = document.getElementById('selectedImage');
+        const images = document.querySelectorAll('.carousel-image');
+        images.forEach(image => {
+            image.addEventListener('mouseover', () => {
+                const currentlyActiveImage = document.querySelector('.carousel-image.active');
+                currentlyActiveImage && currentlyActiveImage.classList.remove('active');
+
+                // Add "active" class to the hovered image
+                image.classList.add('active');
+                    selectedImage.src = image.src;
+                    zoomedImgElement.style.backgroundImage = `url( ${image.src} )`;
+                selectedImage.style.transform = 'translateX(-50px)';
+                selectedImage.style.transition = '1s linear'
+                setTimeout(() => {
+                    selectedImage.style.transform = 'translateX(0)';
+                }, 150);
+            })
+        })
+
+    })
+</script>
+
+
+</body>
+</html>

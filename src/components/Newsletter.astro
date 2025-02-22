@@ -1,0 +1,220 @@
+---
+import Icon from "astro-icon";
+
+---
+
+<section class="email-section">
+  <h2>
+    Sign up for our <span class="special-word underline"> newsletter</span>
+  </h2>
+  <form class="email-form">
+    <input
+      type="email"
+      name="email"
+      class="email-input"
+      placeholder="Enter you Email Adress..." autocomplete="off"
+    />
+    <button type="submit" class="email-button">
+     <Icon name='mdi:email' />   Subscribe</button
+    >
+  </form>
+  <div class="social-media">
+    <a href="https://facebook.com" target="_blank" class="facebook">
+      <span class="sr-only">Facebook</span>
+   <Icon name='mdi:facebook' />  </a
+    >
+    <a href="https://instagram.com" target="_blank" class="instagram">
+      <span class="sr-only">Instagram</span>
+   <Icon name='mdi:instagram' />  </a
+    >
+    <a href="https://twitter.com" target="_blank" class="twitter">
+      <span class="sr-only">Twitter</span>
+   <Icon name='mdi:twitter' />  </a
+    >
+    <a href="https://reddit.com" target="_blank" class="reddit">
+      <span class="sr-only">Reddit</span>   <Icon name='mdi:reddit' />  </a>
+    <a href="https://linkedin.com" target="_blank" class="linkedin">
+      <span class="sr-only">Linkedin</span>
+      <Icon name='mdi:linkedin' /> </a
+    >
+  </div>
+</section>
+<style>
+  .email-section {
+    margin-bottom: 1rem;
+background-image: linear-gradient(43deg, var(--clr-accent-500) 0%, #C850C0 46%, #FFCC70 100%);
+
+    border-top: 3px solid hsl(220, 20%, 91%);
+    border-bottom: 3px solid var(--clr-accent-400);
+    display: grid;
+    place-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+
+    & h2 {
+      background: rgba( 255, 255, 255, 0.25 );
+      box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+      border-radius: 10px;
+      padding-block: .5rem;
+      border: 1px solid rgba( 255, 255, 255, 0.18 );
+      font-weight: var(--fw-normal);
+      text-align: center;
+      padding-inline: 2rem;
+        }
+    .special-word {
+      font-weight: var(--fw-bold);
+      text-transform: uppercase;
+    }
+    .email-form {
+      display: flex;
+       
+      .email-input,
+      .email-button {
+        padding: 0.7rem 1rem;
+        border: transparent;
+        width: clamp(11rem, 25vw, 30rem);
+        border-radius: 2rem 0 0 2rem;
+      }
+[astro-icon='mdi:email']{
+      width: 15px;
+      @media (width < 768px){
+        width: 0;
+      }
+    }
+      .email-button {
+        display: flex;
+        gap: .2rem;
+        width: fit-content;
+        border-radius: 0 2rem 2rem 0; 
+        border: transparent;
+        cursor: pointer;
+        font-weight: var(--fw-bold);
+        letter-spacing: 1px;
+        background-color: var(--clr-accent-500);
+        color: var(--clr-neutral-100);
+        transition: 0.3s;
+        outline: 1px solid var(--clr-accent-600);
+
+        &:where(:hover, :focus-visible) {
+          background-color: var(--clr-accent-600);
+          outline-offset: 3px;
+        }
+      }
+    }
+    .social-media > a {
+      background-color: var(--clr-primary-600);
+      padding: 0.5rem 0.6rem;
+      margin-left: clamp(.2rem, .75vw,1rem);
+            border-radius: 1rem;
+      color: var(--clr-neutral-100);
+    }
+    [astro-icon]{
+      margin-bottom: -.5rem;
+      translate: 2px 0 ;
+      width: 30px;
+    }
+    .facebook:is(:hover, :focus-visible) {
+      background-color: #3b5998;
+    }
+    .instagram:is(:hover, :focus-visible) {
+      background: radial-gradient(
+          circle farthest-corner at 35% 90%,
+          #fec564,
+          transparent 50%
+        ),
+        radial-gradient(
+          circle farthest-corner at 0 140%,
+          #fec564,
+          transparent 50%
+        ),
+        radial-gradient(
+          ellipse farthest-corner at 0 -25%,
+          #5258cf,
+          transparent 50%
+        ),
+        radial-gradient(
+          ellipse farthest-corner at 20% -50%,
+          #5258cf,
+          transparent 50%
+        ),
+        radial-gradient(
+          ellipse farthest-corner at 100% 0,
+          #893dc2,
+          transparent 50%
+        ),
+        radial-gradient(
+          ellipse farthest-corner at 60% -20%,
+          #893dc2,
+          transparent 50%
+        ),
+        radial-gradient(
+          ellipse farthest-corner at 100% 100%,
+          #d9317a,
+          transparent
+        ),
+        linear-gradient(
+          #6559ca,
+          #bc318f 30%,
+          #e33f5f 50%,
+          #f77638 70%,
+          #fec66d 100%
+        );
+    }
+    .twitter:is(:hover, :focus-visible) {
+      background-color: #55acee;
+    }
+    .reddit:is(:hover, :focus-visible) {
+      background-color: #ff5700;
+    }
+
+    .linkedin:is(:hover, :focus-visible) {
+      background-color: #007bb5;
+    }
+  }
+</style>
+
+ 
+<script>
+ import { validateEmail } from "src/scripts/validateEmail";
+ const isLoggedIn = localStorage.getItem("isLoggedIn")
+document.addEventListener("astro:page-load",()=>{
+ const email = document.querySelector('.email-input') as HTMLInputElement;
+ const form = document.querySelector(".email-form") as HTMLFormElement; if(!form) return;
+  form.addEventListener("submit", async(e)=>{ 
+    e.preventDefault(); 
+    if(isLoggedIn === 'false'){
+      form.reset();
+       return alert("Login in order to subscribe to our newsletter!");
+    }
+    if(email.value === '') return alert("Plase enter your email adress!");
+    if(!validateEmail(email.value) ) return alert(`${email.value} is not a valid email adress!`);
+
+    const response = await fetch(`/api/users/getUser/${email.value}`,{
+     method: "POST",
+     headers:{
+       'content-type': 'application/json',
+     },
+     body: JSON.stringify({userEmail: email.value})
+    })
+    if(!response.ok){
+      const message = await response.json();
+      alert(message.error);
+        form.reset();
+    }
+    const user = await response.json();
+    
+    const subscribeResponse = await fetch(`/api/users/miscellaneous/subscribeToNewsletter`,{
+     method: "POST",
+     headers:{
+       'content-type': 'application/json',
+     },
+     body: JSON.stringify(user)
+    })
+   const data = await subscribeResponse.json();
+   alert(data.message);
+    
+
+  form.reset();
+  })
+})
+</script>

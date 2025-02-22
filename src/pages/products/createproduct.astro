@@ -1,0 +1,310 @@
+---
+import MainHead from "@layouts/MainHead.astro";
+import { slide } from "astro:transitions";
+import { verifyToken } from '@api/users/verifyToken';
+const userToken = await verifyToken(Astro.request)
+ const {userRole } = userToken ?? {};
+if(userRole === 'user') return Astro.redirect("/");
+import { Image } from "astro:assets";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <MainHead title="Create a Product | Technoworld" description="An admin page for creating a product"/>
+  <main id="main-content" transition:animate={slide({duration: '.5s'})}>
+    <form>
+      <h1 style="text-align: center; margin-top: .4rem">Create a  Product</h1>
+      <div class="wrapper">
+        <div class="flex ">
+          <label for="price">Product Image URL 1</label>
+          <input
+          type="text"
+          id="image1"
+          name="image1"
+          class="small"
+          placeholder="Enter image URL 1..." />
+        </div>
+        <div class="flex">
+          <label for="price">Product Image URL 2</label>
+          <input
+          type="text"
+          id="image2"
+          name="image2"
+          class="small"
+          placeholder="Enter image URL 2..." />
+        </div>
+        <div class="flex">
+          <label for="price">Product Image URL 3</label>
+          <input
+          type="text"
+          id="image3"
+          name="image3"
+          class="small"
+          placeholder="Enter image URL 3..." />
+        </div>
+      </div>
+
+      <label for="name">Product Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Enter name..." />
+         
+         <label for="description">Product Description</label>
+       <textarea name="description" id="description" placeholder="Enter description..." ></textarea>
+
+        <div class="wrapper">
+          <div class="flex">
+            <label for="price">Product Price</label>
+            <input
+            maxlength="6"
+              type="text"
+              id="price"
+              name="price"
+              class="small"
+              placeholder="Enter price..." 
+              pattern="[0-9]*"
+              title="Please enter numbers only"/>
+          </div>
+             <div class="flex">
+               <label for="quantity"> Product Quantity</label>
+                <input type="text"  maxlength="3" name="quantity" class="small" id="quantity" pattern="[0-9]*" title="Please enter numbers only" placeholder="Enter quantity...">
+             </div>
+        </div>
+          <div class="wrapper">
+            <div class="flex">
+              <label for="price">Product Category</label>
+              <select id="category" class="select | small">
+                <option value=""> -- Select One --</option>
+                <option value="laptops">Laptops</option>
+                <option value="desktops">Desktops</option>
+                <option value="consoles">Consoles</option>
+                <option value="smartphones">Smartphones</option>
+                <option value="accessories">Accessories</option>
+                <option value="tvs">TVs</option>
+
+              </select>
+            </div>
+            
+             <div class="flex">
+               <label for="advertisable">Advertisable</label>
+                <select id="advertisable" name="category" class="select | small">
+                           <option value="false">False</option>
+                           <option value="true">True</option>
+                      </select>
+                      
+             </div>
+              <div class="flex">
+               <label for="biddable">Biddable</label>
+                <select id="biddable" name="biddable" class="select | small">
+                  <option value="false">False</option>
+                           <option value="true">True</option>
+                      </select>
+                      
+             </div>
+          </div>
+      </div>
+
+      <input type="submit" value="Create a Product" />
+    </form>
+    <Image src="/imgs/createProduct.jpg" alt="Default Image for creating a product" width='1000' height='500' loading='eager'>
+
+  </main>
+
+</html>
+
+<style>
+  *,*::before,*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+  background-image: linear-gradient(to left bottom, #7c0685, #6a0487, #56078a, #3b0c8c, #05118d);
+    color: hsl(0, 0%, 100%);
+    overflow-x: hidden;
+    line-height: 1.25;   
+  }
+  main{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    place-items: center;
+  }
+  @media (width < 1100px){
+    main{
+      grid-template-columns: repeat(1,1fr);
+      
+    }
+  }
+  img{
+    max-width: 100%;
+    height: 100%;
+  }
+  form {
+    display: grid;
+    place-items: center;
+  }
+
+  label {
+    font-weight: 500;
+    margin-top: 1rem;
+    font-size: 1.2rem;
+  }
+  @keyframes shake {
+  0% {
+    margin-left: 0rem;
+  }
+  25% {
+    margin-left: 0.5rem;
+  }
+  75% {
+    margin-left: -0.5rem;
+  }
+  100% {
+    margin-left: 0rem;
+  }
+}
+
+input:invalid {
+  animation: shake 0.2s ease-in-out 0s 2;
+  box-shadow: 0 0 0.6rem #ff0000;
+}
+
+.wrapper{
+  display: flex;
+  gap: 1rem;
+}
+  .flex {
+    display: flex;
+    align-items: center;
+   flex-direction: column;
+  }
+    form .small{
+   width: max(160px, 5rem);
+  }
+  input[type="text"],
+  .select, textarea {
+    padding: 0.5rem 1rem;
+    width: max(500px, 20rem);
+    margin: 0.5rem 0;
+    border: 3px solid black;
+  border-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cstyle%3Epath%7Banimation:stroke 40s infinite linear%3B%7D%40keyframes stroke%7Bto%7Bstroke-dashoffset:776%3B%7D%7D%3C/style%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232d3561' /%3E%3Cstop offset='25%25' stop-color='%23c05c7e' /%3E%3Cstop offset='50%25' stop-color='%23f3826f' /%3E%3Cstop offset='100%25' stop-color='%23ffb961' /%3E%3C/linearGradient%3E %3Cpath d='M1.5 1.5 l97 0l0 97l-97 0 l0 -97' stroke-linecap='square' stroke='url(%23g)' stroke-width='3' stroke-dasharray='388'/%3E %3C/svg%3E") 1;
+    border-radius: 4px;
+    box-sizing: border-box;
+    caret-color: hsl(358, 72%, 50%);
+  }
+  input[type="text"]:where(:focus), textarea:where(:focus){
+    outline: transparent;
+  }
+  textarea{
+    white-space: pre-line;
+    resize: none;
+    height: 147px;
+  }
+    @media (width < 720px) {
+   input[type="text"],
+  .select, textarea {
+    width: max(350px, 20rem);
+  }
+    }
+
+  input[type="submit"] {
+    background-color: hsl(296, 91%, 27%);
+    color: white;
+    padding: 0.8rem 2rem;
+    margin-top: 1.5rem;
+    margin-bottom: .5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  input[type="submit"]:where(:hover, :focus-visible) {
+    background-color: hsl(296, 91%, 87%);
+   color: black;;
+  }
+</style>
+
+<script>
+  async function CreateProduct(){
+    
+  const form = document.querySelector("form") as HTMLFormElement;
+  const inputs = document.querySelectorAll("input[type=text], select, textarea") as NodeListOf<HTMLInputElement>;
+  const imageInput1 = document.getElementById("image1") as HTMLInputElement;
+  const imageInput2 = document.getElementById("image2") as HTMLInputElement;
+  const imageInput3 = document.getElementById("image3") as HTMLInputElement;
+
+  const nameInput = document.getElementById("name") as HTMLInputElement;
+  const descriptionInput = document.getElementById("description")  as HTMLInputElement;
+  const priceInput = document.getElementById("price") as HTMLInputElement;
+  const quantityInput = document.getElementById("quantity") as HTMLInputElement;
+  const categoryInput = document.getElementById("category") as HTMLSelectElement;
+  const advertisableInput = document.getElementById("advertisable") as HTMLSelectElement;
+  const biddableInput = document.getElementById("biddable") as HTMLSelectElement;
+  const productInputs = Array.from(inputs)
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Prevent the form from submitting and reloading the page
+
+    // Validate inputs
+    const isEmpty = productInputs.some(
+      (input) => input.value.trim() === ""
+    );
+    if (isEmpty)
+      return alert("Some of the inputs are empty! Please fill them up.");
+    
+const imageUrl1 =  imageInput1.value;;
+const imageUrl2 =  imageInput2.value;;
+const imageUrl3 =  imageInput3.value;;
+const imageUrls = {
+  imageUrl1:imageUrl1,
+  imageUrl2:imageUrl2,
+  imageUrl3:imageUrl3
+}
+const response = await fetch('/api/products/convertProductImage', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({imageUrls}),
+  });
+
+  const data = await response.json();
+    const product = {
+      uuid: crypto.randomUUID(),
+      image_src: data.convertedImages.imageUrl1,
+      image_src_2: data.convertedImages.imageUrl2,
+      image_src_3: data.convertedImages.imageUrl3,
+      name: nameInput.value,
+      description: descriptionInput.value,
+      price: priceInput.value,
+      category: categoryInput.value,
+      quantity: quantityInput.value,
+      advertisable: advertisableInput.value,
+      biddable:biddableInput.value
+    };
+try {
+      const response = await fetch(`/api/products/createProduct`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (response.ok) {
+        alert("Congratulations! The product was successfully created!");
+        window.location.href = "/";
+      } else {
+        console.error("Error adding product:", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+   
+  });
+  }
+  await CreateProduct();
+  document.addEventListener("astro:before-swap",CreateProduct)
+</script> 

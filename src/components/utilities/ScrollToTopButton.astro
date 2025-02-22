@@ -1,0 +1,37 @@
+---
+import {Icon} from "astro-icon";
+---
+ <button data-astro-reload class="scroll-to-top-btn">
+    <Icon name='mdi:arrow-up-bold-circle-outline' class="back-to-top" style="width: 40px" />
+      <span class="sr-only">Back to top</span></button
+    >
+
+<style>
+              /*back to top button */
+      .back-to-top {
+        cursor: pointer;
+        position: fixed;
+        inset: auto auto -5rem .5rem;
+        z-index: 9;
+        transition: 0.5s;
+        color: var(--clr-accent-400);
+      }
+
+      .visible {
+       inset: auto auto .5rem .5rem;
+      }
+
+</style>
+<script>
+   document.addEventListener("astro:page-load",()=>{
+     const backToTopButton = document.querySelector(".back-to-top") as HTMLButtonElement;
+     window.addEventListener("scroll", () => {
+          backToTopButton.classList.toggle("visible", window.scrollY > 1500);
+        });
+    backToTopButton.addEventListener("click", ()=>
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    }))
+   })
+</script>

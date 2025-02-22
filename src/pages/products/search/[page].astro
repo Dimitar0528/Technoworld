@@ -1,0 +1,422 @@
+---
+import {GetAllProducts} from '@api/products/getAllProducts'
+import ProductCard from "@components/cards/ProductCard.astro";
+import MainLayout from "@layouts/MainLayout.astro"; 
+import Product from "db/models/Product";
+import FilterAside from '@components/filterProducts/FilterAside.astro';
+import { Paginate, Pagination } from 'astro-headless-ui';
+
+
+ const nameSearchParam = Astro.url.searchParams.get('name')! || '',
+  categorySearchParam = Astro.url.searchParams.get('category')! || '',
+  sortBy = Astro.url.searchParams.get('sortBy')! || '',
+  productsPerPage = Astro.url.searchParams.get('productsPerPage')! || '12-per-page',
+  brands = Astro.url.searchParams.get('brands')! || '',
+  selectedBrands = brands.split(';'),
+  specs =  Astro.url.searchParams.get('specs')! || '',
+  selectedSpecs = specs.split(';'),
+  rating = Astro.url.searchParams.get('rating')! || '',
+  selectedRatings = rating.split(';'),
+
+  minPrice = parseInt(Astro.url.searchParams.get('minPrice')!) || 0,
+  maxPrice = parseInt(Astro.url.searchParams.get('maxPrice')!) || 3000;
+  
+   const response: Response = await GetAllProducts();
+ if(!response.ok) return new Response(null, {
+    status: 404,
+    statusText: 'Page Not found'
+  });
+ const products:Product[] = await response.json();
+ 
+let filteredProducts: Product[] = products.filter((product: Product) => {
+  // Extract important variables
+  const productName = product.name.toLowerCase().trim();
+  const searchWords = nameSearchParam.toLowerCase().split(/\s+/);
+
+  // Check if every word in the search query is included in the product name
+  const nameMatch = (
+    // Check if nameSearchParam contains a single digit
+    /\b\d\b/.test(nameSearchParam.toLowerCase()) &&
+    productName.includes(nameSearchParam.toLowerCase())
+  ) || (
+    // Otherwise, follow the previous logic for splitting and checking each word
+    !/\b\d\b/.test(nameSearchParam.toLowerCase()) &&
+    searchWords.every(word => productName.includes(word))
+  );
+
+  // Check other matching criteria
+  const categoryMatch = categorySearchParam === 'All Categories' || product.category.toLowerCase() === categorySearchParam.toLowerCase();
+  const priceMatch = product.price >= minPrice && product.price <= maxPrice;
+  const brandMatch = selectedBrands.length === 0 || selectedBrands.some(brand => productName.includes(brand.toLowerCase()));
+
+  // Check specifications matching
+  const specsMatch = selectedSpecs.length === 0 || selectedSpecs.some(spec => {
+    const specLowerCase = spec.toLowerCase();
+    const isSingleDigit = /\b\d\b/.test(specLowerCase);
+    return (
+      (isSingleDigit && productName.includes(specLowerCase)) ||
+      (!isSingleDigit &&
+        specLowerCase
+          .split(/\s+/)
+          .every(specWord => productName.includes(specWord)))
+    );
+  });
+
+  // Check ratings matching
+  const ratingsMatch = selectedRatings.length === 0 || selectedRatings.some(rating => String(product.average_rating).includes(rating.split('-')[0]));
+
+  // Return the final result
+  return nameMatch && categoryMatch && priceMatch && brandMatch && specsMatch && ratingsMatch;
+});
+
+  // Sort the products based on sortBy option
+  switch (sortBy) {
+    case 'name-asc':
+      filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+      break;
+    case 'name-desc':
+      filteredProducts.sort((a, b) => b.name.localeCompare(a.name));
+      break;
+      case 'price-asc':
+      filteredProducts.sort((a, b) => a.price - b.price);
+      break;
+    case 'price-desc':
+      filteredProducts.sort((a, b) => b.price - a.price);
+      break;
+      case 'rating-asc': 
+      filteredProducts.sort((a, b) => a.average_rating - b.average_rating);
+    break;
+    case 'rating-desc':
+      filteredProducts.sort((a, b) => b.average_rating - a.average_rating);
+     break;
+    default:
+      break;
+  }
+  
+  //spell check for search name input
+  import Fuse from "fuse.js"; 
+import fs from "fs/promises";
+
+    const dictionaryContents = await fs.readFile("src/components/dictionary/dictionary.txt", "utf8");
+    const words = dictionaryContents.split(",").map((word) => word);
+
+    const options = {
+      keys: ["word"],
+      threshold: 0.5, 
+    };
+ 
+   const fuse = new Fuse(words, options); 
+   const results = fuse.search(nameSearchParam);
+---
+
+<MainLayout title="Search Page | Technoworld" description="The search page where users can search/filter products, based on specific criteria">
+  <main id="main-content">
+
+ <FilterAside products={products} filteredProducts={filteredProducts} />
+    <section class="max-width">
+      <div class="section-title">
+        <h2 > Search results for <span class="searchReadout"> </span>
+        </h2>
+        <p>Found: <span class="length">{filteredProducts.length}</span></p>
+      </div>
+      <form class="filter-form">
+        <label for="sort-by">Sort By: </label>
+        <div class="select-dropdown">
+          <select class="sort-by" name="sort-by" id="sort-by">
+             <option value="none" selected>None</option>
+             <option value="name-asc">Name asc.</option>
+             <option value="name-desc">Name desc.</option>
+             <option value="price-asc">Price asc.</option>
+             <option value="price-desc">Price desc.</option>
+              <option value="rating-asc">Rating asc.</option>
+             <option value="rating-desc">Rating desc.</option>
+           </select>
+          </div>
+           <label for="products-per-page">Products per page: </label>
+            <div class="select-dropdown">
+
+          <select class="products-per-page" name="products-per-page" id="products-per-page">
+             <option value="12-per-page" selected>12 per page</option>
+             <option value="16-per-page">16 per page</option>
+             <option value="20-per-page">20 per page</option>
+             <option value="24-per-page">24 per page</option>
+
+           </select>
+           </div>
+           <button type="submit" class="apply">Apply</button>
+            </form>
+      <div class="product-cards-grid">
+{
+filteredProducts.length === 0 ? (
+  <p class="not-found">No products found!</p>
+) : (
+  <Paginate size={productsPerPage.split('-')[0]} page={Astro.params.page!} data={filteredProducts}>
+    {page => (
+        <>
+          {page.data.map((filteredProduct: Product) => (
+            <ProductCard
+              uuid={filteredProduct.uuid}
+              image_src={filteredProduct.image_src}
+              category={filteredProduct.category}
+              name={filteredProduct.name}
+              price={filteredProduct.price}
+              quantity={filteredProduct.quantity}
+              advertisable={filteredProduct.advertisable}
+              average_rating={filteredProduct.average_rating} 
+            />
+          ))}
+    
+        </>
+    )}
+    <section slot="error">
+        <p>This page does not exist</p>
+        <a href="" onclick="window.history.back()">Go back</a>
+    </section>
+  </Paginate>
+)}
+
+      </div>
+      {filteredProducts.length !== 0  ? (
+  <Paginate size={productsPerPage.split('-')[0]} page={Astro.params.page!} data={filteredProducts}>
+    {page => (
+      <div class="pagination">
+        <Pagination  total={page.lastPage} current={page.currentPage}>
+          <span slot="disabled">...</span>
+          {page =>  
+            { 
+            return (
+            <a
+              class="pagination-link"
+              href={new URL(`${Astro.url.origin}/products/search/${page.number}?${Astro.url.href.split("?")[1]}`)}
+            >
+              {page.number}
+            </a>
+          )}}
+        </Pagination>
+      </div>
+    )}
+  </Paginate>
+) : results.length !== 0  ? (
+  <p class="misspelled-word">
+    Did you mean{" "}
+     {results.map(result => 
+      <a class="correct-word-link" href={`/products/search/${Astro.params.page}?category=${categorySearchParam}&name=${result.item}`}>{result.item} </a> 
+      <span>or</span>
+            )}
+  </p>
+) : null}
+
+    </section>
+  </main>
+</MainLayout> 
+
+<script define:vars={{ nameSearchParam,categorySearchParam,sortBy,productsPerPage}}>
+
+function updateSearchPageValues(){
+    const form = document.querySelector('.filter-form');
+    if(!form) return;
+  form.addEventListener("submit",(e)=>{
+  e.preventDefault();
+  const formData = new FormData(form);
+  const sortBy = formData.get("sort-by")?.toString();
+  const productsPerPage = formData.get("products-per-page")?.toString();
+    const url = new URL(`${location.origin}/products/search/1?${location.href.split("?")[1]}`)
+
+   url.searchParams.set("sortBy",sortBy);
+   url.searchParams.set("productsPerPage",productsPerPage);
+   location.assign(url.toString());
+
+  })
+
+  const categorySelect = document.querySelector(".input-select");
+  const searchInput = document.querySelector(".input");
+  const sortBySelect = document.querySelector(".sort-by");
+  const productsPerPageSelect = document.querySelector(".products-per-page");
+  const searchReadout = document.querySelector(".searchReadout");
+  function updateDocumentTitle(nameSearchParam,categorySearchParam ){
+    document.title = nameSearchParam ? `Search results for ${nameSearchParam} | Technoworld` : `Search results for ${categorySearchParam} | Technoworld`;
+  }
+  function updateSearchReadout(nameSearchParam,categorySearchParam){
+    searchReadout.textContent = nameSearchParam ? `"${nameSearchParam}"` : `"${categorySearchParam}"`
+  }
+  function updateSelectOptions(selectInput,searchParam){
+        // Loop through options and set the selected attribute for the matching option
+    for (let i = 0; i < selectInput.options.length; i++) {
+      const option = selectInput.options[i];
+      if (option.value === searchParam) {
+        option.selected = true;
+      }
+    }
+  }
+    searchInput.value = nameSearchParam;
+    updateSelectOptions(categorySelect,categorySearchParam);
+    updateSelectOptions(sortBySelect,sortBy); updateSelectOptions(productsPerPageSelect,productsPerPage)
+    updateDocumentTitle(nameSearchParam, categorySearchParam);
+    updateSearchReadout(nameSearchParam,categorySearchParam);
+
+}
+updateSearchPageValues();
+document.addEventListener("astro:after-swap", updateSearchPageValues)
+</script>
+
+<style>
+  h2,p{
+    margin-top: .25rem;
+  }
+  a{
+   color: var(--clr-primary-500);
+  }
+  .pagination{
+    display: flex;
+    justify-content: center;
+    .pagination-link{
+      margin-left: 1rem;
+      padding: .5rem 1rem;
+      border: 1px solid var(--clr-primary-500);
+      border-radius: .5rem;
+    }
+    & span{
+      margin-top: 1rem;
+      margin-left: 1rem;
+    }
+    .pagination-link:where(:hover,:focus-visible){
+    background-color: var(--clr-accent-600);
+    color: var(--clr-neutral-100);
+    }
+  }
+  .misspelled-word{
+    word-wrap:break-word;
+    font-size: clamp(1rem,1.1vw,2rem);
+    text-align: center;
+    & span:last-child{
+      display: none;
+    }
+    & a{
+      display: inline-block;
+      text-decoration: underline;
+      text-underline-offset: 6px;
+      transition: .3s;
+    }
+    & a:where(:hover, :focus){
+      color: var(--clr-accent-500);
+      text-decoration:transparent;
+    }
+  }
+  .correct-word-link{
+    margin-inline: .3rem;
+  }
+    #main-content{
+    display: flex;
+    gap: 1rem;
+    @media(width < 768px){
+      flex-direction: column;
+    }
+  }
+
+  aside{
+    border-right: 1px solid var(--clr-accent-600);
+    display: grid;
+    place-items: center;
+  }
+  .section-title{
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    @media(width < 900px){
+      gap: 0;
+      margin-bottom: 1rem;
+      flex-direction: column;
+    }
+    & p{
+    display: flex;
+    gap: .3rem;
+    text-align: center;
+    font-size: clamp(1rem, 1.2vw, 2rem);
+    }
+  }
+  .not-found{
+    text-align: center;
+    margin-block: 1rem;
+    font-size: clamp(1.7rem, 1.95vw, 3rem);
+    font-weight: var(--fw-bold);
+    color: var(--clr-accent-600);
+    text-transform: uppercase;
+  }
+  .searchReadout{
+    color: var(--clr-primary-500);
+    font-size: clamp(1.4rem, 1.5vw, 2rem);
+    margin-left: .25rem;
+    text-align: center;
+  }
+
+  .length{
+    color: var(--clr-primary-500);
+  }
+  .filter-form{
+    display: flex;
+    align-items: center;
+     justify-content: end;
+     margin-right: 2rem;
+     gap: .5rem;
+     margin-bottom: 1.5rem;
+     @media(width < 900px){
+      flex-direction: column;
+      margin-right: 0;
+      gap: 1rem;
+      & *{
+        width: clamp(200px, 70vw, 80%);
+      }
+    }
+    & label{
+      font-size: .9rem;
+    }
+    
+  }
+  .apply{
+    border: transparent;
+    background-color: var(--clr-secondary-200);
+    padding: .3rem 1rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: .25s;
+    &:where(:hover, :focus-visible){
+      background-color: var(--clr-accent-400);
+      color: var(--clr-neutral-100);
+    }
+  }
+  .select-dropdown {
+  position: relative;
+  & select {
+    cursor: pointer;
+    width: 100%;
+    font-size: .9rem;
+    padding: .2rem 1rem;
+    border-radius: .5rem;
+    border: 1px solid var(--clr-neutral-300);
+      appearance: none;
+    &:where(:active,:focus-visible){
+      outline: none;
+      box-shadow: none;
+    }
+  }
+  &::after {
+    cursor: pointer;
+    content: " ";
+    position: absolute;
+    top: 50%;
+    margin-top: -2px;
+    right: 5px;
+    width: 0; 
+    height: 0; 
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #333;
+  }
+}
+@media (width < 900px){
+  .select-dropdown::after{
+    right: 10px;
+
+  }
+}
+</style>

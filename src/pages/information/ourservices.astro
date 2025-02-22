@@ -1,0 +1,271 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { slide } from "astro:transitions";
+
+---
+
+<MainLayout title="Our Services | Technoworld" description="A page showing the different types of services we offer">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.6/css/all.css">
+  <main id="main-content" transition:animate={slide ({ duration: '.5s'})}>
+
+<section id="our-services">
+  <div class="container">
+    <div class="desc">
+      <div class="heading">
+        <h1>Our Services</h1>
+      </div>
+      <div class="text">
+        <p>WHAT WE OFFER </p>
+      </div>
+    </div>
+    <div class="services">
+
+      
+      <div class="column" id="column-1">
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-flask">
+
+            </i>
+            <p class="service-txt">
+              Smart Care - Accidental breakage and burglary.
+            </p>                       
+          </div>
+        </div>
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-bullhorn">
+
+            </i>
+            <p class="service-txt">
+             Transport to the building entrance
+            </p>
+          </div>
+        </div>
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon far fa-lightbulb">
+
+            </i>
+            <p class="service-txt">
+            Door delivery
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="column" id="column-2">
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-wrench">
+
+            </i>
+            <p class="service-txt">
+              Extended Warranty Insurance
+            </p>
+          </div>
+        </div>
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-database">
+
+            </i>
+            <p class="service-txt">
+              Cashback purchases
+            </p>
+          </div>
+        </div>
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-chart-pie">
+
+            </i>
+            <p class="service-txt">
+            Recycling
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="column" id="column-2">
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-tasks">
+
+            </i>
+            <p class="service-txt">
+             Order by phone or Viber, receive at home
+            </p>                            
+          </div>
+        </div>
+        <div class="service">
+          <div class="service-desc">
+            <i class="service-icon fas fa-certificate">
+
+            </i>
+            <p class="service-txt">
+             Technopolis gift cards
+            </p>
+          </div>
+        </div>
+        <div class="service ">
+          <div class="service-desc">
+            <i class="service-icon">
+
+            </i>
+            <p class="service-txt">
+              Order by phone or Viber, receive at home
+            </p>
+          </div>
+        </div>
+      </div>
+      
+      
+      
+      
+    </div>
+    <div class="clear-fix"></div>
+  </div>
+  
+</section>
+</main>
+ </MainLayout>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Roboto', sans-serif;
+}
+
+.container {
+    max-width: 90vw;
+    margin: auto;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+.heading h1:after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 2px;
+    background: #BABABA;
+    margin-top: 4px;
+    
+}
+
+.clear-fix {
+    clear: both;
+}
+
+.hidden {
+    visibility: hidden !important;
+}
+
+/* end global */
+
+/* start of our services section */
+
+#our-services {
+    background: #f6f6f6;
+    min-height: 100vh;
+    padding-top: 25vh;
+}
+
+/* OUR SEERVICES LEFT SIDE */
+
+#our-services .desc {
+    width: 33%;
+    float: left;
+}
+
+#our-services .desc .heading h1 {
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 1.4px;
+    margin-bottom: 30px;
+}
+
+#our-services .desc .text {
+    color: #BABABA;
+}
+
+/* OUR SERVICES RIGHT SIDE */
+
+#our-services .services {
+    width: 67%;
+    float: left;
+}
+
+#our-services .services .column {
+    float: left;
+    margin-right: 120px;
+    transform: rotate(45deg);
+    transition: transform 0.3s ease;
+}
+
+#our-services .services .column .service {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 135px;
+    aspect-ratio: 1;
+    background: #FFFFFF;
+    transition: all 0.1s ease;
+    margin-bottom: 7px;
+}
+
+#our-services .services .column .service:hover {
+    background: #28282e;
+    color: #fff;
+}
+
+#our-services .services .column .service:hover .service-icon {
+    color: #fff;
+}
+
+#our-services .services .column .service .service-desc {
+    transform: rotate(-45deg);
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 10px;
+    font-weight: bold;
+    transition: transform 0.3s ease;
+}
+
+#our-services .services .column .service .service-desc .service-icon  {
+    font-size: 20px;
+    margin-bottom: 5px;
+    color: #f57469;
+}
+
+/* end of our services section */
+
+/* media query */
+
+@media all and (max-width: 967px) {
+    #our-services {
+        padding-top: 60px;
+    }
+    
+    #our-services .desc {
+        width: 100%;
+        float: none;
+        margin-bottom: 30px;
+    }
+    
+    #our-services .services {
+        width: 100%;
+    }
+    
+    #our-services .services .column {
+        transform: rotate(0deg);
+        margin-right: 10px;
+    }
+    
+    #our-services .services .column .service .service-desc {
+        transform: rotate(0deg);
+    }
+}
+</style>

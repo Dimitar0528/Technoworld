@@ -1,0 +1,162 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { slide } from "astro:transitions";
+
+---
+<MainLayout title="Frequently Asked Questions | Technoworld" description="A page showing the most frequently asked questions users have">
+  <main id="main-content" transition:animate={slide ({ duration: '.5s'})}>
+
+<h1>Frequently Asked Questions</h1>
+
+<div class="accordion">
+    <div class="accordion-item">
+    <div class="accordion-item-header">
+ How do I create an account on your website?
+    </div>
+    <div class="accordion-item-body">
+      <div class="accordion-item-body-content">
+       Creating an account is easy! Click on the "Sign Up" button on the top right corner of the homepage. Fill in your details, verify your email, and you're all set!
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-item-header">
+How can I track my order?
+    </div>
+    <div class="accordion-item-body">
+      <div class="accordion-item-body-content">
+       You can easily track your order by logging into your account on our website and navigating to the "Order History" or "My Account" section. There, you will find detailed information about your order status and shipment tracking number. Alternatively, you will receive an email with a tracking link once your order has been shipped.
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-item-header">
+What payment methods do you accept?
+    </div>
+    <div class="accordion-item-body">
+      <div class="accordion-item-body-content">
+        We accept various payment methods, including credit/debit cards (Visa, MasterCard, American Express), PayPal, and sometimes alternative methods like Apple Pay or Google Pay. During the checkout process, you can choose your preferred payment option and proceed securely with your payment.
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-item-header">
+How can I return or exchange a product?
+    </div>
+    <div class="accordion-item-body">
+      <div class="accordion-item-body-content">
+       We offer a hassle-free return/exchange policy. Visit our "Returns" page for detailed instructions. Generally, you'll need to fill out a form, pack the item securely, and send it back to us. Once received, we'll process your request promptly.
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-item-header">
+Can I modify or cancel my order after placing it?
+    </div>
+    <div class="accordion-item-body">
+      <div class="accordion-item-body-content">
+        We process orders quickly to ensure swift delivery. If you need to modify or cancel your order, contact our customer support immediately. Once the order is shipped, modifications might not be possible.
+      </div>
+    </div>
+  </div>
+  <div class="accordion-item">
+    <div class="accordion-item-header">
+Are my personal and payment details secure?
+    </div>
+    <div class="accordion-item-body">
+      <div class="accordion-item-body-content">
+        Absolutely! We prioritize your security. Our website uses SSL end-to-end encryption to secure your personal and payment information. We do not store your credit card details after the transaction is complete.
+      </div>
+    </div>
+  </div>
+
+</div>
+  </main>
+</MainLayout>
+
+<style>
+    h1 {
+  text-align: center;
+  margin: 2rem 0;
+  font-size:clamp(2rem,2.5vw,3rem);
+}
+
+.accordion {
+  width: 90%;
+  max-width: 1000px;
+  margin: 2rem auto;
+}
+.accordion-item {
+  background-color: var(--clr-secondary-100);
+  color: var(--clr-primary-700);
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.25);
+}
+.accordion-item-header {
+  padding: 0.5rem 3rem 0.5rem 1rem;
+  min-height: 3.5rem;
+  line-height: 1.25rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+.accordion-item-header::after {
+  content: "\002B";
+  font-size: 2rem;
+  position: absolute;
+  right: 1rem;
+}
+.accordion-item-header.active::after {
+  content: "\2212";
+}
+.accordion-item-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out;
+}
+.accordion-item-body-content {
+  padding: 1rem;
+  line-height: 1.5rem;
+  border-top: 1px solid;
+  border-image: linear-gradient(to right, transparent, #34495e, transparent) 1;
+}
+
+</style>
+
+<script>
+document.addEventListener("astro:page-load",()=>{
+    const accordionItemHeaders: NodeListOf<Element> = document.querySelectorAll(
+  ".accordion-item-header"
+);
+
+accordionItemHeaders.forEach((accordionItemHeader) => {
+  accordionItemHeader.addEventListener("click", (event) => {
+    const currentlyActiveAccordionItemHeader: Element | null = document.querySelector(
+      ".accordion-item-header.active"
+    );
+
+    if (
+      currentlyActiveAccordionItemHeader &&
+      currentlyActiveAccordionItemHeader !== accordionItemHeader
+    ) {
+      currentlyActiveAccordionItemHeader.classList.toggle("active");
+      if (currentlyActiveAccordionItemHeader.nextElementSibling) {
+        (currentlyActiveAccordionItemHeader.nextElementSibling as HTMLElement).style.maxHeight = "0";
+      }
+    }
+
+    accordionItemHeader.classList.toggle("active");
+    const accordionItemBody: HTMLElement | null = accordionItemHeader.nextElementSibling as HTMLElement | null;
+    if (accordionItemHeader.classList.contains("active") && accordionItemBody) {
+      accordionItemBody.style.maxHeight = `${accordionItemBody.scrollHeight}px`;
+    } else if (accordionItemBody) {
+      accordionItemBody.style.maxHeight = "0";
+    }
+  });
+});
+})
+
+</script>

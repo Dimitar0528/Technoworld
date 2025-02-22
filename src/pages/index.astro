@@ -1,0 +1,95 @@
+---
+import { GetAdvertisedProducts } from "@api/products/getAdvertisedProducts";
+import BiddingPromotion from "@components/BiddingPromotion.astro";
+import LandingCard from "@components/cards/LandingCard.astro";
+import ProductCard from "@components/cards/ProductCard.astro";
+import MainLayout from "@layouts/MainLayout.astro";
+import Product from "db/models/Product";
+import SpecialLetter from "@components/utilities/SpecialLetter.astro";
+import CookieConsent from "@components/CookieConsent.astro";
+import LoginPromotion from "@components/LoginPromotion.astro";
+import Swiper from "@components/utilities/Swiper.astro";
+import CouponPromotion from "@components/CouponPromotion.astro";
+const response: Response = await GetAdvertisedProducts();
+const products: Product[] = await response.json();
+const cookieConsentCookie = Astro.request.headers
+  .get("cookie")
+  ?.includes("true");
+const userCookie = Astro.request.headers.get("cookie")?.includes("_jwt");
+---
+
+<MainLayout
+  title="Home Page | Technoworld"
+  description="The main home page for the Technoworld e-commerce website">
+  {cookieConsentCookie === false ? <CookieConsent /> : null}
+  {userCookie === false ? <LoginPromotion /> : null}
+
+  <main id="main-content">
+    <section class="shop-categories max-width">
+      <LandingCard
+        href="/products/search/1?category=Laptops"
+        title="Laptops Collection"
+        body=" Shop now!"
+        imgsrc="/imgs/products/laptop.avif"
+      />
+      <LandingCard
+        href="/products/search/1?category=Consoles"
+        title="Consoles Collection"
+        body=" Shop now!"
+        imgsrc="/imgs/products/console.avif"
+      />
+      <LandingCard
+        href="/products/search/1?category=Accessories"
+        title="Accessories Collection"
+        body=" Shop now!"
+        imgsrc="/imgs/products/headset.webp"
+      />
+    </section>
+
+    <CouponPromotion />
+    <section class="max-width">
+      <div class="section-title">
+        <h2 class="title">
+          <SpecialLetter number={1} letter="n" />
+          <SpecialLetter number={2} letter="e" />
+          <SpecialLetter number={3} letter="w" />
+          &nbsp;
+          <SpecialLetter number={4} letter="a" />
+          <SpecialLetter number={5} letter="r" />
+          <SpecialLetter number={6} letter="r" />
+          <SpecialLetter number={7} letter="i" />
+          <SpecialLetter number={8} letter="v" />
+          <SpecialLetter number={9} letter="a" />
+          <SpecialLetter number={10} letter="l" />
+          <SpecialLetter number={11} letter="s" />
+        </h2>
+      </div>
+      <div class="product-cards-grid">
+        {
+          products.map((product: Product) => (
+            <ProductCard
+              uuid={product.uuid}
+              image_src={product.image_src}
+              category={product.category}
+              name={product.name}
+              price={product.price}
+              quantity={product.quantity}
+              advertisable={product.advertisable}
+              average_rating={product.average_rating}
+            />
+          ))
+        }
+      </div>
+    </section>
+    <BiddingPromotion />
+  </main>
+</MainLayout>
+<style>
+  .shop-categories {
+    display: grid;
+    place-content: center;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 0.8fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+</style>

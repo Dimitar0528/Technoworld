@@ -1,0 +1,242 @@
+---
+import CartProduct from "db/models/Shopping_Cart_Item";
+import MainLayout from "@layouts/MainLayout.astro"; 
+import CheckoutSteps from "@components/utilities/CheckoutSteps.astro";
+import Icon from "astro-icon";
+import { verifyToken } from '@api/users/verifyToken';
+const userToken = await verifyToken(Astro.request);
+ const {userUUID } = userToken ?? {};
+ if(userUUID === undefined) return Astro.redirect('/');
+ import {getShoppingCartItems} from '@api/shopping_cart/loadUserCart/[user_uuid]'
+ 
+ const response = await getShoppingCartItems(userUUID);
+         const cartProducts: CartProduct[] = await response.json();
+---
+<MainLayout title="Your Shopping Cart | Technoworld" description="The page shows the products that the user has added to their shopping cart">
+  <main id="main-content">
+    <CheckoutSteps step1="active" step2="todo" step3="todo"/> 
+    <h1>Shopping Cart Items</h1>
+    <div class="flex">
+      {
+        cartProducts.length === 0 ? null : 
+        <a href="/checkout/checkout" data-astro-reload> <button class="order-btn"> <Icon name="mdi:cart-arrow-right"/> Order Products</button></a>
+        <button class="remove-all"> <Icon name="mdi:delete-outline"/>  Remove All</button>
+      }
+    </div>
+   <div class="cart-container">
+{
+  cartProducts.length === 0 ? (
+    <h3 style="text-align: center;"> You currently do not have any items in your cart!</h3>
+  ) : (
+    cartProducts.map(cartProduct => {
+      const product = cartProduct.Product;
+      const elements:CartProduct[] = [];
+    if (product.quantity === 0) return;
+      for (let i = 0; i < cartProduct.product_quantity; i++) {
+        elements.push(
+          <a href={`/products/getProduct/${product.category}/${product.uuid}`} class="cart-item">
+            <img src={`${product.image_src}`} alt={`${product.name}`} class="cart-item-image" width='300' height='120' transition:name={cartProduct.product_quantity <= 1 ?`product${product.uuid}` : undefined} />
+            <div class="cart-item-details">
+              <p class="product-name">{product.name}</p>
+    <p class="price-tag">Price: <span class="price">{product.price}</span></p>
+            </div>
+            <div class="buttons">
+              <button class='remove-btn | remove-cart-btn' data-product-id={`${product.uuid}`} data-notification-btn> <Icon name="mdi:delete-circle"/> Remove</button>
+            </div>
+          </a>
+        );
+      }
+    
+      return elements;
+    })
+  )
+}
+
+   </div>
+</main>
+<script define:vars={{cartProducts}} >
+               const chatbox = document.querySelector(".chatbox"); if(!chatbox) return;
+ const userUUID = chatbox.getAttribute("data-user-uuid");
+ cartProducts.map(async cartProduct => {
+      const product = cartProduct.Product;
+    if (product.quantity === 0) {
+        let cart = JSON.parse(localStorage.getItem("shopping_cart") || "[]");
+  const indexToRemove = cart.findIndex(uuid => uuid === product.uuid);
+// If the UUID is found, remove it from the array
+if (indexToRemove !== -1) {
+  cart.splice(indexToRemove, 1);
+
+  // Update the array in localStorage
+  localStorage.setItem('shopping_cart', JSON.stringify(cart));
+}
+await fetch(`/api/shopping_cart/deleteCartItem/${userUUID}/${product.uuid}`,{
+                               method: 'DELETE', 
+                              })
+                              
+    }
+
+ })
+</script>
+<script>
+ document.addEventListener("astro:page-load",()=>{
+   const chatbox = document.querySelector(".chatbox") as HTMLInputElement;
+ const userUUID = chatbox.getAttribute("data-user-uuid")!;
+   const deleteAllCartItemsBtn = document.querySelector(".remove-all") as HTMLButtonElement; if(!deleteAllCartItemsBtn) return;
+    
+  deleteAllCartItemsBtn.addEventListener("click",async ()=>{
+    const result = window.confirm("Are you sure you want to delete all your items added to the shopping cart?");
+    if(result === false) return;
+    const response = await fetch(`/api/shopping_cart/deleteAllCartItems/${userUUID}`,{
+      method: "DELETE",
+    })
+    if(!response.ok){
+      const errorMessage = await response.json();
+      alert(errorMessage.error)
+    }
+    const sucessMessage = await response.json();
+    alert(sucessMessage.message);
+    location.href = '/';
+  })
+           })
+           
+           async function updateCartDropdown() {
+               const chatbox = document.querySelector(".chatbox") as HTMLInputElement; if(!chatbox) return;
+ const userUUID = chatbox.getAttribute("data-user-uuid")!;
+  const notificationInfo = document.querySelector('.toast-notification-info') as HTMLElement;
+  const isLoggedIn = localStorage.getItem("isLoggedIn");
+  let cart = JSON.parse(localStorage.getItem("shopping_cart") || "[]");
+
+  if (isLoggedIn === 'false') return;
+  const removeBtns = document.querySelectorAll(".remove-cart-btn") as NodeListOf<HTMLButtonElement>
+            removeBtns.forEach(removeBtn=>{
+              removeBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const productUUID = removeBtn.getAttribute("data-product-id");
+                    const indexToRemove = cart.findIndex(uuid => uuid === productUUID);
+// If the UUID is found, remove it from the array
+if (indexToRemove !== -1) {
+  cart.splice(indexToRemove, 1);
+
+  // Update the array in localStorage
+  localStorage.setItem('shopping_cart', JSON.stringify(cart));
+}
+                notificationInfo.textContent = "Product removed from cart!";
+                             const cartQuality = document.querySelector('.cart-qty') as HTMLElement;
+                             const productCard = (e.target as HTMLElement).closest('.cart-item');
+                             productCard && productCard.remove();
+                             cartQuality.textContent = String(Number(removeBtns.length) - 1);
+                                        if(Number(cartQuality.textContent) === 0){
+          setTimeout(() => {
+           location.reload();
+          }, 2000);
+         }
+                             await fetch(`/api/shopping_cart/deleteCartItem/${userUUID}/${productUUID}`,{
+                               method: 'DELETE', 
+                              })
+                              
+                              updateCartDropdown();
+
+            })
+
+            });;
+}
+document.addEventListener("astro:page-load", updateCartDropdown);
+</script>
+   <style >
+    [astro-icon]{
+      width: 20px;
+      margin-bottom:-.3rem;
+    }
+    .flex{
+      display: flex;
+      justify-content: space-evenly;
+      margin-block: 1.5rem;
+      align-items: center;
+    } 
+    h1{
+        margin-block: 1.5rem ;
+        text-align: center;
+        font-size: clamp(1.5rem, 2.1vw, 3.5rem);
+    }
+    .remove-all{
+      transition: .25s;
+      padding: .75rem clamp(1rem, 2vw, 3rem);
+      border-radius: 1rem;
+       border:transparent;
+    box-shadow: -.2rem .2rem #121212;
+    transition:  translate 100ms, box-shadow 100ms, background-color 300ms;
+      background-color: var(--clr-primary-500);
+      color: var(--clr-neutral-100);
+      cursor: pointer;
+      font-size: .9rem;
+      &:active{
+          translate: .125rem .125rem;
+      box-shadow: -.125rem .125rem #121212;
+      }
+      &:where(:hover,:focus-visible){
+      background-color: var(--clr-primary-700);
+      
+      }
+    }
+    .order-btn {
+      cursor: pointer;
+  padding: 13px clamp(.3rem, 2vw,2rem);;
+  border: 1px solid var(--clr-accent-500);
+  color: var(--clr-accent-500);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: clamp(.75rem, .8vw, 1rem);
+  letter-spacing: 1.5px;
+  transition: all .2s ease-in-out;
+  
+  &:hover {
+    background: var(--clr-accent-500);
+    border: 1px solid var(--clr-accent-500);
+    color: var(--clr-neutral-100);
+    border-radius: 30px;
+  }
+}
+    .cart-container{
+    margin-inline: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(min(100%,600px),1fr));
+    gap: 1rem;
+        .cart-item{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--clr-accent-500);
+            margin-top: .5rem;
+            padding: .25rem .4rem;
+            @media (width <768px){
+                flex-direction: column;
+            }
+            &:where(:hover,:focus-within){
+              background-color: var(--clr-neutral-200);
+            }
+          
+        }
+         & a:not(:nth-child(even)):last-child{
+          grid-column: span 2;
+          @media(width < 1000px){
+            grid-column: auto;
+          }
+        }
+        .cart-item-details{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: black;
+        }
+        .cart-item-image{
+          max-width: 200px;
+        }
+   .remove-btn{
+      @media(width < 768px){
+        margin-block: 0.5rem;
+  }
+   }
+    }
+   </style>
+    
+</MainLayout>

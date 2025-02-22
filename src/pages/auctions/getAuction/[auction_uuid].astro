@@ -1,0 +1,307 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import Auction from "db/models/Auction";
+
+import { verifyToken } from '@api/users/verifyToken';
+const userToken = await verifyToken(Astro.request);
+ const {userUUID } = userToken ?? {};
+
+import { getAuction } from "@api/auctions/getAuction/[auction_uuid]";
+const auctionResponse = await getAuction(Astro);
+const auction: Auction = await auctionResponse.json();
+const {product_uuid} = auction;
+
+import {getProducts as GetProduct} from '@api/products/getProduct/[product_uuid]'
+import ProductCarousel from "@components/utilities/ProductCarousel.astro";
+import type Product from 'db/models/Product'; 
+const response: Response = await GetProduct(product_uuid);
+  const product: Product = await response.json(); 
+
+const minimum_bid_raw = auction.initial_price >= auction.current_highest_bid
+  ? auction.initial_price + (auction.initial_price * (auction.minimum_bid_increment_percentage / 100)) + 0.01
+  : auction.current_highest_bid  + (auction.current_highest_bid * (auction.minimum_bid_increment_percentage / 100)) + 0.01 ;
+
+const minimum_bid = Number(minimum_bid_raw.toFixed(2)); 
+
+type Bid_History = {
+  bid_amount: number,
+  username: string,
+  updatedAt: Date,
+}
+
+const bid_history: Bid_History[] = JSON.parse(auction.bid_history);
+// Find the highest bid
+const highestBid = bid_history?.reduce((maxBid, bid) => {
+  const bidAmount = Number(bid.bid_amount);
+  return bidAmount > maxBid.amount ? { amount: bidAmount, username: bid.username } : maxBid;
+}, { amount: 0, username: '' });
+
+  const start_time = new Date(auction.start_time);
+  start_time.setHours(start_time.getHours() - 2)
+  const start_time_locale = new Date(start_time).toLocaleString('en-GB');
+  const end_time = new Date(auction.end_time);
+  end_time.setHours(end_time.getHours() - 2);
+  const end_time_locale = end_time.toLocaleString('en-GB');
+  const mode = import.meta.env.MODE
+---
+<MainLayout title="Auction Information | Technoworld" description="A page showing more details for each auction"> 
+    <script src="https://unpkg.com/js-image-zoom@0.7.0/js-image-zoom.js" defer></script>
+
+   <section class="max-width">
+     <div class="flex | details">
+        <div class="flex" style="flex-direction: column;">
+      <div class="img-zoom-container">
+        <img id="selectedImage" src={product.image_src} alt={product.name} transition:name=`product${product.uuid}` width="400" height="400" >
+        <p style="text-align: center;">Hover on the image to zoom it<span class="warning">(Desktop only!)</span></p>
+            </div>
+            <ProductCarousel img_src={product.image_src} img_src_2={product.image_src_2} img_src_3={product.image_src_3} />
+    </div>
+       <div class="flex | name">
+         <h1>{auction.name}</h1>
+         <p>{auction.description}</p>
+         <div class="flex" style="margin-top: 1rem;">
+      <p>Start Time: <strong>{start_time_locale}</strong></p>
+     <p>End Time: <strong>{end_time_locale}</strong> </p>
+         </div>
+       </div>
+     </div>
+
+     {
+       end_time > new Date() ? (
+      start_time < new Date() ? (
+        <div class="offer | flex">
+          <div class="user-offer | flex">
+            {auction.current_highest_bid < auction.purchase_price ? (
+              <h2>Your offer</h2>
+              <div class="flex | input">
+                <input placeholder="Enter your bid..." type="number" name="bid" id="bid" min={minimum_bid} max={auction.purchase_price + 1} />
+                <input type="submit" value="Submit Bid" class="submit" />
+                </div>
+                <p id="min-bid">Minimum bid amount: <strong>${minimum_bid}</strong></p>
+                <p>Purchase Price: <strong>${auction.purchase_price}</strong></p>
+                  ) :
+                  <div class="closed">
+                    <h2>The auction has closed</h2>
+                    <p>The winner is <strong>{highestBid.username}</strong> and his bid was<strong> ${highestBid.amount}</strong></p>
+                    <p></p>
+                    </div>
+                  }
+                  </div>
+          <div class="bid-history">
+    <h2>Number of bids: {auction.bid_counter}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Bid Amount</th>
+                <th>Username</th>
+                <th>Submitted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {bid_history?.slice().reverse().map((bid) => (
+                <tr style="text-align: center;">
+                    <td>${bid.bid_amount}</td>
+                    <td>{bid.username}</td>
+                    <td>{bid.updatedAt}</td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+</div>
+
+        </div>
+      ) : (
+        <h2 style="text-align: center; margin-block: 1rem;">The auction is not yet active.</h2>
+      )
+       ) : (
+      <div class="end">
+  <h2>The auction has ended</h2>
+  {highestBid?.username !== undefined || highestBid?.amount !== undefined ? (
+          <p>The winner is <strong>{highestBid.username}</strong> and his bid was <strong>${highestBid.amount}</strong></p>
+
+  ) : (
+    <p>No bids were made</p>
+  )}
+</div>
+
+      <div class="bid-history">
+    <h2>Number of bids: {auction.bid_counter}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Bid Amount</th>
+                <th>Username</th>
+                <th>Submitted At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {bid_history?.slice().reverse().map((bid) => (
+                <tr style="text-align: center;">
+                    <td>${bid.bid_amount}</td>
+                    <td>{bid.username}</td>
+                    <td>{bid.updatedAt}</td>
+                </tr>
+            ))}
+        </tbody>
+    </table>
+</div>
+
+       )
+     }
+     
+     <div class="cta-admin-buttons">
+      <a href={`/products/editProduct/${product.uuid}`} >Edit Biddable Product</a>
+       </div>
+   </section>
+</MainLayout>
+<script is:inline src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+<script define:vars={{auction,userUUID,minimum_bid,mode}}>
+  document.addEventListener("astro:page-load",()=>{
+const socket = mode === 'production' ? io() : null;
+
+
+    const submitBtn = document.querySelector(".submit"); if(!submitBtn) return;
+    submitBtn.addEventListener("click", async () => {
+        const min_bid = document.querySelector("#bid").value;
+        if(userUUID === undefined) return alert("You need to log in to your account in order to participate in this auction!")
+        if(min_bid === '') return alert("Please enter a bid!");
+        if(min_bid < minimum_bid) return alert("The bid must be more than or equal to the current minimum bid amount!");
+        const requestObj = {
+          current_highest_bid: min_bid,
+          current_highest_bidder: userUUID,
+        };
+        try {
+           const response = await fetch(`/api/auctions/updateAuctionBid/${auction.auction_uuid}`, {
+            method: 'PUT',
+            body: JSON.stringify(requestObj),
+          });
+          const data = await response.json();
+         const {auction_uuid} = data;
+         socket !== null ? socket.emit('chat message',auction_uuid) : location.reload();
+
+        } catch (error) {
+          console.error(error);
+        }
+      });
+
+     socket !== null && 
+  socket.on('chat message', (auction_uuid) => {
+    if(auction_uuid === auction.auction_uuid)
+    location.reload();
+  });
+  });
+</script>
+
+<style>
+  body{
+    line-height: 1.6;
+  }
+  .flex{
+    display: flex;
+    gap: 1rem;
+  }
+  .name{
+    flex-direction: column;
+    justify-content: center;
+    gap: 2rem;
+    background-color: var(--clr-secondary-100);
+    padding: 1rem;
+    text-align: center;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    & p {
+      max-width: 65ch;
+      margin-inline: auto;
+
+    }
+  }
+
+  .offer{
+    margin-top: 3rem;
+    background-color: var(--clr-secondary-100);
+    flex-direction: column;
+    gap: 1rem;
+    padding: .75rem;
+    border-radius: 1rem;
+  }
+.bid-history{
+  display: flex;
+  flex-direction: column;
+  & h2 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+}
+.user-offer{
+  margin-block: 1rem;
+  text-align: center;
+  justify-content: space-evenly;
+  align-items: center;
+  @media(width < 800px){
+    flex-direction: column;
+  }
+}
+.end,.closed{
+  text-align: center;
+}
+.end{
+  margin-block: 3rem;
+}
+tr:nth-child(2n){
+  background-color: var(--clr-secondary-200);
+}
+tr:nth-child(2n - 1){
+background-color: var(--clr-secondary-100);
+}
+td{
+  font-size: 1.1rem;
+}
+th,td,table{
+  border: 1px solid black;
+}
+.img-zoom-container{
+  width: 600px;
+}
+.details{
+  align-items: start;
+}
+.input{
+  gap: 0;
+}
+input[type="number"]{
+      padding: 0.7rem 1rem;
+    border: transparent;
+    width: clamp(13rem,25vw,30rem);
+    border-radius: 2rem 0 0 2rem;
+}
+.submit{
+  padding-inline: .4rem;
+    border-radius: 0 2rem 2rem 0;
+    border: transparent;
+    cursor: pointer;
+    font-weight: var(--fw-bold);
+    letter-spacing: 1px;
+    background-color: var(--clr-accent-500);
+    color: var(--clr-neutral-100);
+    transition: 0.3s;
+    outline: 1px solid var(--clr-accent-600);
+    &:where(:hover,:focus-visible){
+      background-color: var(--clr-secondary-200);
+      color: var(--clr-neutral-900);
+    }
+}
+@media(width < 1200px){
+  .img-zoom-container{
+    width: auto;
+  }
+    .details{
+      align-items: center;
+    flex-direction: column;
+    }
+    img{
+      max-width: 100%;
+      margin-block: 2rem;
+    }
+  }
+</style>

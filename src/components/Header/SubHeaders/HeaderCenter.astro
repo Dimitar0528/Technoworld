@@ -1,0 +1,272 @@
+---
+import SpecialLetter from "../../utilities/SpecialLetter.astro";
+import { Icon } from "astro-icon";
+const categorySearchParam = Astro.url.searchParams.get("category")!;
+---
+
+<div class="header-center max-width">
+  <div>
+    <div class="website-name">
+      <SpecialLetter number={1} letter="T" />
+      <SpecialLetter number={2} letter="e" />
+      <SpecialLetter number={3} letter="c" />
+      <SpecialLetter number={4} letter="h" />
+      <SpecialLetter number={5} letter="n" />
+      <SpecialLetter number={6} letter="o" />
+      <SpecialLetter number={7} letter="w" />
+      <SpecialLetter number={8} letter="o" />
+      <SpecialLetter number={9} letter="r" />
+      <SpecialLetter number={10} letter="l" />
+      <SpecialLetter number={11} letter="d" />
+    </div>
+    <div class="slogan">Tomorrow's Tech, Today's Choice.</div>
+  </div>
+
+  <form class="search-form">
+    <label for="select-category" class="sr-only"
+      ><span class="sr-only">select category</span></label
+    >
+
+    <select class="input-select" id="select-category" name="select-category">
+      <option value="All Categories">All Categories</option>
+      <option value="Laptops">Laptops</option>
+      <option value="Desktops">Desktops</option>
+      <option value="Consoles">Consoles</option>
+      <option value="Smartphones">Smartphones</option>
+      <option value="Accessories">Accessories</option>
+      <option value="TVs">TVs</option>
+    </select>
+    <label for="search-input" class="sr-only"
+      ><span class="sr-only">search</span></label
+    >
+    <input
+      class="input"
+      placeholder="Search..."
+      name="search-input"
+      id="search-input"
+      type="search"
+    />
+    <button class="search-btn" type="submit" title="Search">
+      <Icon name="mdi:search" style="width: 13px" />
+    </button>
+  </form>
+
+  <div class="icons">
+    <a class="wishlistLink" href="/products/wishlist">
+      <Icon name="mdi:cards-heart-outline" style="width: 30px" />
+      <span>Your eList</span>
+      <div class="qty">0</div>
+      <ul class="wishlist-dropdown"></ul>
+    </a>
+
+    <a href="/products/cart">
+      <Icon name="mdi:cart" style="width: 30px" />
+      <span>Your Cart</span>
+      <div class="qty | cart-qty">0</div>
+      <ul class="cart-dropdown"></ul>
+    </a>
+    <div class="mobile-nav-toggle">
+      <a href="#!">
+        <Icon name="mdi:menu" style="width: 30px" />
+        <span>Menu</span>
+      </a>
+    </div>
+  </div>
+</div>
+<script define:vars={{ categorySearchParam }}>
+  function SearchProducts() {
+    const form = document.querySelector(".search-form");
+    if (!form) return;
+
+    function updateSelectOptions(selectInput, searchParam) {
+      // Loop through options and set the selected attribute for the matching option
+      for (let i = 0; i < selectInput.options.length; i++) {
+        const option = selectInput.options[i];
+        if (option.value === searchParam) {
+          option.selected = true;
+        }
+      }
+    }
+
+    const categorySelectInput = document.querySelector(".input-select");
+
+    // Get the category from the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchCategory = urlParams.get("category");
+
+    updateSelectOptions(categorySelectInput, searchCategory);
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const searchTerm = formData.get("search-input")?.toString().toLowerCase();
+      const searchCategory = formData.get("select-category")?.toString();
+      const url = new URL(
+        `/products/search/1?${location.href.split("?")[1]}`,
+        window.location.origin
+      );
+      url.searchParams.set("category", searchCategory);
+      searchTerm
+        ? url.searchParams.set("name", searchTerm)
+        : url.searchParams.delete("name");
+      window.location.assign(url.toString());
+    });
+  }
+
+  SearchProducts();
+  document.addEventListener("astro:after-swap", SearchProducts);
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-5px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .wishlist-dropdown,
+  .cart-dropdown {
+    left: -8rem;
+    width: max(20rem, 50%);
+    display: none;
+    position: absolute;
+    background-color: white;
+    border: 1px solid var(--clr-accent-500);
+    padding: 0.5rem;
+    list-style: none;
+    animation: fadeIn 0.35s ease-in-out;
+  }
+  a {
+    z-index: 5;
+  }
+  a:hover .wishlist-dropdown,
+  a:hover .cart-dropdown {
+    display: block;
+  }
+  a:hover .wishlist-dropdown:empty,
+  a:hover .cart-dropdown:empty {
+    display: none;
+  }
+  .header-center {
+    display: grid;
+    grid-template-columns: 0.6fr 0.8fr 0.4fr;
+    align-items: center;
+    padding-block: 1.4rem;
+    color: var(--clr-neutral-100);
+
+    .mobile-nav-toggle {
+      display: none;
+    }
+
+    @media (width < 1150px) {
+      gap: 1.2rem;
+      grid-template-columns: auto;
+      width: 95%;
+      text-align: center;
+    }
+    @media (width < 950px) {
+      .mobile-nav-toggle {
+        display: block;
+        text-align: right;
+      }
+    }
+    .website-name {
+      user-select: none;
+      position: relative;
+      font-size: 1.5rem;
+    }
+    .slogan {
+      font-size: 0.85em;
+      font-style: italic;
+    }
+    .search-form > * {
+      padding: 0.7rem 1rem;
+      border: 1px solid #e4e7ed;
+      outline: transparent;
+      margin-left: -0.3rem;
+
+      &:focus-visible {
+        outline: 2px solid var(--clr-accent-500);
+      }
+    }
+    .input-select {
+      max-width: 30%;
+      cursor: pointer;
+      padding: 0.67rem 1rem;
+      border-radius: 2.5rem 0 0 2.5rem;
+    }
+    .input {
+      width: calc(100% - 210px);
+      caret-color: var(--clr-accent-400);
+    }
+    .search-btn {
+      border-radius: 0 2.5rem 2.5rem 0;
+      border-color: var(--clr-accent-400);
+      background-color: var(--clr-accent-400);
+      color: var(--clr-neutral-100);
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: var(--clr-accent-500);
+      }
+    }
+    & input[type="search"]::-webkit-search-cancel-button {
+      cursor: pointer;
+    }
+    .icons {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+
+      & a {
+        position: relative;
+
+        & span {
+          font-size: 12px;
+        }
+        & [astro-icon] {
+          display: block;
+          margin-left: 0.8rem;
+        }
+      }
+    }
+    .qty {
+      position: absolute;
+      right: -5px;
+      top: -10px;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 10px;
+      color: #fff;
+      background-color: var(--clr-accent-400);
+    }
+    .item {
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      padding: 0.15rem;
+
+      &:where(:hover, :focus-visible) {
+        background-color: var(--clr-secondary-100);
+      }
+      &:not(a) {
+        border-bottom: 1px solid var(--clr-primary-700);
+      }
+    }
+    .item-image {
+      max-width: 20%;
+    }
+    .item-details {
+      color: black;
+      text-align: center;
+    }
+  }
+</style>

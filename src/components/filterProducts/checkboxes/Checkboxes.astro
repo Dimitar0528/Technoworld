@@ -1,0 +1,83 @@
+---
+import CheckBox from "./CheckBox.astro";
+interface Props{
+  headerName:string;
+    cssClass:string;
+    filterArray:string[],
+    paramName:string;
+    product_quantity:{};
+    relative_product_quantity:{};
+}
+const {cssClass, filterArray, paramName,headerName,product_quantity,relative_product_quantity} = Astro.props;
+---
+<div class="checkboxes">
+  <header>
+    <h3 style="text-align: center;">{headerName}</h3>
+    </header>
+    {
+    filterArray.map(brand => (
+      <CheckBox inputValue={brand} CSSInputClass={cssClass} product_quantity={product_quantity[brand]} relative_product_quantity={relative_product_quantity[brand]} />
+    ))
+  }
+</div>
+<style> 
+  header h3 {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+    margin-bottom: 1rem;
+
+}
+  .checkboxes{
+    margin-block: 2rem;
+  padding: 0 25px 35px;
+ height: 455px;
+  overflow-x: auto;
+  }
+
+</style>
+<script define:vars={{cssClass,paramName}}>
+document.addEventListener("astro:page-load",()=>{
+  // Get all checkboxes
+const checkboxes = document.querySelectorAll(`.${cssClass}`);
+  const url = new URL(`${location.origin}/products/search/1?${location.href.split("?")[1]}`)
+
+// Function to update URL based on selected checkboxes
+function updateURL() {
+  const selectedValues = Array.from(checkboxes)
+    .filter(checkbox => checkbox.checked)
+    .map(checkbox => checkbox.value)
+    .join(';');
+  
+if (selectedValues.length > 0) {
+    url.searchParams.set(`${paramName}`, selectedValues);
+  } else {
+    // If no checkboxes are selected, remove the query parameter
+    url.searchParams.delete(`${paramName}`);
+  }  
+  window.location.assign(url.toString());
+}
+
+// Event listener for checkbox changes
+checkboxes.forEach(checkbox => {
+  checkbox.addEventListener('change', () => {
+    updateURL();
+  });
+});
+
+// Function to read URL parameters and update checkboxes
+function updateCheckboxesFromURL() {
+  const searchParam = url.searchParams.get(`${paramName}`);
+  if (searchParam) {
+    const selectedBrands = searchParam.split(';');
+    checkboxes.forEach(checkbox => {
+      checkbox.checked = selectedBrands.includes(checkbox.value);
+    });
+  }
+}
+
+// Call the function to update checkboxes based on URL parameters
+updateCheckboxesFromURL();
+})
+
+</script>

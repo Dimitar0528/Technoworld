@@ -1,0 +1,78 @@
+---
+import Icon from 'astro-icon';
+interface Props {
+  title: string;
+  body: string;
+  href: string;
+  imgsrc: string;
+}
+const { href, title, body, imgsrc } = Astro.props;
+---
+
+<div class="link-card">
+  <div class="text">
+    <h2 data-text>
+      {title}
+    </h2>
+    <a href={href} >
+       <Icon name='mdi:arrow-right-bold-hexagon-outline' style="width: 25px" />
+      <span data-text>{body}</span>
+    </a>
+  </div>
+
+  <img src={imgsrc} alt={imgsrc} />
+</div>
+<style>
+  .text {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-block: 0.5rem;
+  }
+  .link-card {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    transition: background-color 0.3s;
+    margin-bottom: 2rem;
+    list-style: none;
+    padding: 0.6rem 0.8rem;
+    background-color: var(--clr-accent-500);
+    color: var(--clr-neutral-100);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1);
+    outline: 2px solid var(--clr-accent-400);
+    & a {
+      display: flex;
+      gap: .25rem;
+      background-color: var(--clr-primary-700);
+      border-radius: 100vmin;
+      padding: 0.3rem;
+      transition: all 0.5s;
+      max-width: 100%;
+    }
+    & a:where(:hover, :focus-visible) {
+      background-color: var(--clr-neutral-100);
+      color: var(--clr-primary-700);
+    }
+
+    & h2 {
+      font-size: 1.4rem;
+    }
+
+    & img {
+      width: 100%;
+      height: 140px;
+      scale: 1.1;
+      transition: all 0.3s;
+    }
+
+    &:where(:hover, :focus-within) img {
+      scale: 1.05;
+      rotate: -5deg;
+    }
+    &:where(:hover, :focus-within) {
+      background-color: var(--clr-accent-600);
+    }
+  }
+</style>

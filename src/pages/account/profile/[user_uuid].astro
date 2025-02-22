@@ -1,0 +1,28 @@
+---
+import MainHead from "@layouts/MainHead.astro";
+import { GetUser} from "@api/users/getUser/[user_uuid]";
+// get individual user
+import User from "db/models/User";
+const response: Response = await GetUser(Astro);
+const user:User = await response.json();
+if(!response.ok) return new Response(null, {
+   status: 404,
+   statusText: 'Page Not found'
+ });
+import Dashboard from "@components/cards/DashboardCard.astro";
+
+
+---
+<!DOCTYPE html>
+<html lang="en">
+<MainHead title="Profile Information | Technoworld" description="Page showing the profile details and order statuses for each user and all the products, users and their order statuses for the admin " />
+<main>
+    {
+    user.role === "admin" ? 
+      <Dashboard is_admin={true} />
+         :  
+    	 <Dashboard is_admin={false} />
+    }
+    
+</main>
+</html>

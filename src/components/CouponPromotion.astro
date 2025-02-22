@@ -1,0 +1,102 @@
+<div class="container">
+  <div class="coupon-card">
+    <img src="/icon.png" class="logo" width="80" height="80" alt="logo" />
+    <h3>
+      <strong>Unlock exclusive savings today!</strong> Enjoy a<strong>
+        6% discount on all products</strong
+      > with code <strong>WRLD999</strong> at checkout! Elevate your shopping experience
+      and indulge in premium offerings at a more delightful price!
+    </h3>
+    <di class="coupon-row">
+      <span id="cpnCode">WRLD999</span>
+      <span id="cpnBtn">Copy Code</span>
+    </di>
+
+    <div class="circle1"></div>
+    <div class="circle2"></div>
+  </div>
+</div>
+
+<script is:inline>
+  var cpnBtn = document.getElementById("cpnBtn");
+  var cpnCode = document.getElementById("cpnCode");
+
+  cpnBtn.onclick = function () {
+    navigator.clipboard.writeText(cpnCode.innerHTML);
+    cpnBtn.innerHTML = "COPIED";
+    setTimeout(function () {
+      cpnBtn.innerHTML = "COPY CODE";
+    }, 3000);
+  };
+</script>
+<style>
+  .container {
+    width: 90vw;
+    margin-inline: auto;
+    margin-bottom: 2rem;
+  }
+  .coupon-card {
+    background: linear-gradient(135deg, var(--clr-accent-500), #9d4de6);
+    color: var(--clr-neutral-100);
+    text-align: center;
+    padding: 40px 3.5rem;
+    border-radius: 15px;
+    box-shadow: 5px 10px 10px 0 rgba(0, 0, 0, 0.4);
+    position: relative;
+  }
+  .logo {
+    width: 80px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    margin-inline: auto;
+    @media (width < 768px) {
+      display: none;
+    }
+  }
+  .coupon-card h3 {
+    margin-inline: auto;
+    max-width: 75ch;
+    font-size: clamp(1rem, 1.4vw, 1.6rem);
+    font-weight: 400;
+    line-height: clamp(1.6rem, 2.6vw, 40px);
+  }
+  .coupon-card p {
+    font-size: 15px;
+  }
+  .coupon-row {
+    display: flex;
+    align-items: center;
+    margin: 25px auto;
+    width: fit-content;
+  }
+  #cpnCode {
+    border: 1px dashed #fff;
+    padding: 0.25rem 1.5rem;
+    border-right: 0;
+    font-weight: 900;
+  }
+  #cpnBtn {
+    border: 1px solid #fff;
+    background: #fff;
+    padding: 0.25rem 1.5rem;
+    border-radius: 0 1rem 1rem 0;
+    color: #7158fe;
+    cursor: pointer;
+  }
+  .circle1,
+  .circle2 {
+    background: var(--clr-neutral-100);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .circle1 {
+    left: -25px;
+  }
+  .circle2 {
+    right: -25px;
+  }
+</style>

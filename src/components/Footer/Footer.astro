@@ -1,0 +1,172 @@
+---
+const year = new Date().getFullYear();
+import Link from "../utilities/Link.astro";
+import Icon from "astro-icon";
+import { verifyToken } from '@api/users/verifyToken';
+
+const userToken = await verifyToken(Astro.request);
+ const {userUUID } = userToken ?? {};
+---
+
+<footer class="footer" id="footer">
+  <div class="row max-width">
+    <div class="col flex">
+      <h3>About us</h3>
+      <p>
+        We are an e-commerce company aiming to provide the best deals and the
+        smoothest experience.
+      </p>
+      <ul class="footer-list flex">
+        <Link
+          href="mailto:wrld@abv.bg"
+          displayIcon="true"
+          iconClass="email"
+          body="wrld@abv.bg"
+          
+        />
+        <Link
+          href="tel:02-49-28-758"
+          displayIcon="true"
+          iconClass="phone"
+          body="02-49-28-758"
+        />
+        <Link
+          href="https://www.google.com/maps/place/%D0%B1%D1%83%D0%BB.+%E2%80%9E%D0%A7%D0%B5%D1%80%D0%BD%D0%B8+%D0%B2%D1%80%D1%8A%D1%85%E2%80%9C+88,+1407+%D0%A5%D0%BB%D0%B0%D0%B4%D0%B8%D0%BB%D0%BD%D0%B8%D0%BA%D0%B0,+%D0%A1%D0%BE%D1%84%D0%B8%D1%8F/@42.6606731,23.313872,17z/data=!3m1!4b1!4m6!3m5!1s0x40aa84595ae07f4f:0x7b19921a1d8530cb!8m2!3d42.6606692!4d23.3164469!16s%2Fg%2F11csj4t8l5?entry=ttu"
+          displayIcon="true"
+          iconClass="map-marker-down"
+          body="Cherni Vrah 88"
+        />
+      </ul>
+    </div>
+    <div class="col flex">
+      <h3>Categories</h3>
+      <ul class="footer-list flex">
+    <Link href="/products/search/1?category=Laptops" body="Laptops" />
+    <Link href="/products/search/1?category=Desktops" body="Desktops" />
+    <Link href="/products/search/1?category=Consoles" body="Consoles" />
+    <Link href="/products/search/1?category=Smartphones" body="Smartphones" />
+    <Link href="/products/search/1?category=Accessories" body="Accessories" />
+    <Link href="/products/search/1?category=tvs" body="TVs" />
+      </ul>
+    </div>
+    <div class="col flex">
+      <h3>Information</h3>
+      <ul class="footer-list flex">
+        <Link href="/" body="About Us" />
+        <Link href="/information/contactus" body="Contact Us" />
+        <Link href="/information/cookiepolicy" body="Cookie Policy" />
+        <Link href="/information/termsofuse" body="Terms Of Use" />
+        <Link href="/information/privacypolicy" body="Privacy Policy" />
+      </ul>
+    </div>
+    <div class="col flex">
+      <h3>Client Care</h3>
+      <ul class="footer-list flex">
+        <Link href={userUUID ? `/account/profile/${userUUID}`: "/account/sign-in"}
+         body="My Account" />
+        <Link href="/information/ourservices" body="Our Services" />
+        <Link href="/information/returns" body="Return/Exchange" />
+        <Link href="/" body="Product Support" />
+        <Link href="/information/faq" body="FAQs" />
+      </ul>
+    </div>
+  </div>
+  <div class="copyright max-width">
+    <p class="copyright-text">
+      Copyright &copy; {year}
+      <a href="/" class="nav-item" data-astro-reload> Technowrld.netlify.app</a>
+    </p>
+    <a href="/secret" class="secret">Secret</a>
+    <div class="payment-providers">
+      <Icon name="simple-icons:mastercard"/>
+      <Icon name="simple-icons:visa"/>
+      <Icon name="simple-icons:paypal"/>
+      <Icon name="simple-icons:americanexpress"/>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-top: 2.5rem;
+    background-color: var(--clr-primary-800);
+    color: var(--clr-neutral-100);
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+    .col {
+    & p {
+      max-width: 30ch;
+      font-size: var(--fs-300);
+      font-weight: var(--fw-light);
+      text-align: center;
+    }
+    & h3 {
+      text-transform: uppercase;
+    }
+  }
+      .flex {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .footer-list {
+    background-color: var(--clr-primary-800);
+  }
+
+  }
+  .copyright {
+        position: relative;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-align: center;
+    border-top: 1px solid var(--clr-neutral-100);
+    background-color: var(--clr-primary-700);
+    padding-inline: 0.5rem;
+
+    @media (width < 600px) {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  .payment-providers {
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    &   [astro-icon]{
+      margin-top: .5rem; 
+    width: 35px;
+  }
+  }
+ .secret {
+    position: absolute;
+    left: -50%;
+    z-index: 9;
+    padding: .5rem;
+    background-color: var(--clr-primary-800);
+    color: white;
+    opacity: 0;
+    transition: .5s;
+
+    @media (width < 600px) {
+      left: 0;
+      opacity: 1;
+      position: relative;
+    }
+    &:where(:hover){
+      background-color: var(--clr-accent-400);;
+    }
+  }
+  .secret:focus-visible {
+    left: 50%;
+    opacity: 1;
+  }
+  }
+</style>

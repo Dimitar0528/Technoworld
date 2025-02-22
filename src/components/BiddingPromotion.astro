@@ -1,0 +1,170 @@
+---
+---
+
+<section class="bidding-promotion">
+  <div class="content">
+    <h2>Exclusive auction products every week</h2>
+    <p>
+      Unleash your inner bidder and snag incredible deals through our
+      interactive and captivating auction system. <br />
+      <span class="underline">Hurry up, you only have:</span>
+    </p>
+    <div class="clock">
+      <div class="circle"><h3 id="days">02</h3><span>days</span></div>
+      <div class="circle"><h3 id="hours">10</h3><span>hours</span></div>
+      <div class="circle"><h3 id="minutes">34</h3><span>mins</span></div>
+      <div class="circle"><h3 id="seconds">60</h3> <span>secs</span></div>
+    </div>
+    <a class="bid-button" href="/auctions/auctions">don't miss out!</a>
+    
+  </div>
+  <img
+    src="/imgs/bid-cover.avif"
+    alt="Cover showing the bidding process"
+    class="bid-img"
+    width="700"
+    height="350"
+    loading="lazy"
+  />
+</section>
+
+<style>
+  .bidding-promotion {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: var(--clr-accent-500);
+    text-align: center;
+
+   & .content {
+  
+    display: grid;
+    place-items: center;
+    gap: 1.5rem;
+    margin: 0.5rem;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+    padding-block: 1rem;
+    width: clamp(20rem, 40vw, 100%);
+
+    & a{
+       color: var(--clr-neutral-900);
+    }
+    & h2 {
+      text-transform: uppercase;
+      font-weight: var(--fw-bold);
+    }
+    & p {
+      max-width: 50ch;
+
+      & > span{
+    text-emphasis: '🕒';
+    font-weight: var(--fw-bold);
+    font-size: 1.3em;
+    text-transform: uppercase;
+      }
+    }
+      .clock {
+    display: flex;
+    gap: 0.5rem;
+
+      .circle {
+    background-color: var(--clr-primary-600);
+    color: var(--clr-neutral-100);
+    padding: .7rem;
+    border-radius: 20%;
+  }
+  }
+    .bid-button {
+     font-family: 'IBM Plex Mono';
+    font-weight: var(--fw-bold);
+    text-transform: uppercase;
+    background-color: var(--clr-neutral-100);
+    padding: .75rem 1rem;
+    border-radius: .25rem;
+    border: solid .125 #121212;
+    box-shadow: .25rem .25rem #121212;
+    transition:  translate 100ms, box-shadow 100ms, background-color 300ms;
+    &:active{
+      translate: .125rem .125rem;
+      box-shadow: .125rem .125rem #121212;
+    }
+          &:where(:hover, :focus-visible) {
+        background-color: var(--clr-neutral-200);
+      }
+    }
+  }
+  .bid-img {
+    width: clamp(10rem,50vw, 45rem);
+  }
+  }
+  @media (width < 768px) {
+    .bidding-promotion .content {
+     width: 95vw;
+    }
+    .bidding-promotion {
+      flex-direction: column;
+    }
+    .bidding-promotion .bid-img{
+     width: 95vw;
+          height: 100%;
+          margin-bottom: 1rem;
+
+    }
+  }
+</style>
+
+<script>
+  function updateCountdown() {
+  const now = new Date();
+  const targetDateString = localStorage.getItem("targetDate");
+
+  if (targetDateString !== null) {
+    const targetDate = new Date(targetDateString);
+    const timeDifference = targetDate.getTime() - now.getTime();
+
+    if (timeDifference <= 0) {
+      // Countdown has ended, reset it
+      const newTargetDate = new Date();
+      newTargetDate.setDate(newTargetDate.getDate() + 7);
+      localStorage.setItem("targetDate", newTargetDate.toISOString());
+      updateElementText("days", "00");
+      updateElementText("hours", "00");
+      updateElementText("minutes", "00");
+      updateElementText("seconds", "00");
+    } else {
+      const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor(
+        (timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+      );
+      const minutes = Math.floor(
+        (timeDifference % (1000 * 60 * 60)) / (1000 * 60)
+      );
+      const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+
+      updateElementText("days", String(days).padStart(2, "0"));
+      updateElementText("hours", String(hours).padStart(2, "0"));
+      updateElementText("minutes", String(minutes).padStart(2, "0"));
+      updateElementText("seconds", String(seconds).padStart(2, "0"));
+    }
+  } else {
+    // Set the target date one week from now
+    const newTargetDate = new Date();
+    newTargetDate.setDate(newTargetDate.getDate() + 7);
+    localStorage.setItem("targetDate", newTargetDate.toISOString());
+  }
+}
+function updateElementText(id: string, text: string) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.textContent = text;
+  }
+}
+
+// Update the countdown every second
+setInterval(updateCountdown, 1000);
+
+// Initial call to set the initial countdown values
+updateCountdown();
+
+</script>

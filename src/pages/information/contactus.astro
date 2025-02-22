@@ -1,0 +1,321 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { slide } from "astro:transitions";
+import Icon from "astro-icon";
+import { verifyToken } from '@api/users/verifyToken';
+
+const userToken = await verifyToken(Astro.request);
+ const {userRole } = userToken ?? {};
+---
+<MainLayout title="Contact Us | Technoworld" description="Page for contacting the Technoworld Support Team for any questions/found bugs etc." >
+  <main id="main-content" transition:animate={slide ({ duration: '.5s'})}>
+  <section>
+    
+    <div class="section-header">
+      <div class="container">
+        <h2>Contact Us</h2>
+        <p>Thank you for visiting our website. If you have any questions, concerns, or feedback, we would love to hear from you. Our dedicated support team is here to assist you. Whether you need assistance with your order or have a product inquiry, feel free to reach out to us.</p>
+      </div>
+    </div>
+    
+    <div class="container">
+      <div class="row">
+        
+        <div class="contact-info">
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+               <Icon name="mdi:home">
+            </div>
+            
+            <div class="contact-info-content">
+              <h4>Address</h4>
+              <p>Boulevard Cherni Vrah 88,<br/> Sofia, Bulgaria</p>
+            </div>
+          </div>
+          
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+             <Icon name="mdi:phone">
+            </div>
+            
+            <div class="contact-info-content">
+              <h4>Phone</h4>
+              <p>02-49-28-758</p>
+            </div>
+          </div>
+          
+          <div class="contact-info-item">
+            <div class="contact-info-icon">
+              <Icon name="mdi:email">
+            </div>
+            
+            <div class="contact-info-content">
+              <h4>Email</h4>
+             <p>wrld@abv.bg</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="contact-form">
+          <form class="messageForm" id="contact-form">
+            <h2>Send Message</h2>
+            <div class="input-box">
+              <input type="text" required name="fullName">
+              <span>Full Name</span>
+            </div>
+            
+            <div class="input-box">
+              <input type="email" required name="email" class="email">
+              <span>Email</span>
+            </div>
+            
+            <div class="input-box">
+              <textarea required name="message" class="message"></textarea>
+              <span>Type your Message...</span>
+            </div>
+            
+            <div class="input-box">
+              <input type="submit" value="Send" name="Send" class="sendBtn">
+            </div>
+          </form>
+        </div>
+        
+      </div>
+    </div>
+  </section>
+  </main>
+</MainLayout>
+
+<script define:vars={{userRole}}>
+
+const sendBtn = document.querySelector(".sendBtn");
+sendBtn.addEventListener("click", async (e) => {
+  e.preventDefault();
+
+  const emailInputValue = document.querySelector(".email").value;
+  const messageInputValue = document.querySelector(".message").value;
+
+  const responseBody = {
+    email: emailInputValue,
+    message: messageInputValue,
+    emailSender: userRole,
+  };
+
+  try {
+    const response = await fetch("/api/users/sendEmail/sendMessage", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(responseBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.error}`);
+    } else {
+      const responseData = await response.json();
+      alert(responseData.message);
+      location.href = '/';
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An unexpected error occurred.");
+  }
+});
+</script>
+
+<style>
+  [astro-icon]{
+    margin-top: .5rem;
+    width: 50px;
+  }
+   #main-content{
+   min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url(https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+#main-content::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: rgba(0,0,0,0.8);
+}
+    section {
+   position: relative;
+  z-index: 3;
+  padding-top: 50px;
+  padding-bottom: 50px;
+  
+}
+.container {
+  max-width: 1080px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.section-header {
+  margin-bottom: 50px;
+  text-align: center;
+}
+
+.section-header h2 {
+  color: #FFF;
+  font-weight: bold;
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.section-header p {
+  color: #FFF;
+}
+
+.row  {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contact-info {
+  width: 50%;
+}
+
+.contact-info-item {
+  display: flex;
+  margin-bottom: 30px;
+}
+
+.contact-info-icon {
+  height: 70px;
+  width: 70px;
+  background-color: var(--clr-accent-600);
+  color: var(--clr-neutral-100);
+  text-align: center;
+  border-radius: 50%;
+}
+
+.contact-info-icon i {
+  font-size: 30px;
+  line-height: 70px;
+}
+
+.contact-info-content {
+  margin-left: 20px;
+}
+
+.contact-info-content h4 {
+  color: var(--clr-accent-400);
+  font-size: 1.4em;
+  margin-bottom: 5px;
+}
+
+.contact-info-content p {
+  color: #FFF;
+  font-size: 1em;
+}
+
+.contact-form {
+  caret-color: var(--clr-accent-400);
+  background-color: #fff;
+  padding: 40px;
+  width: 45%;
+  padding-bottom: 20px;
+  padding-top: 20px;
+}
+
+.contact-form h2 {
+  font-weight: bold;
+  font-size: 2em;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.contact-form .input-box {
+  position: relative;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.contact-form .input-box input,
+.contact-form .input-box textarea{
+  width: 100%;
+  padding: 10px 0;
+  font-size: 16px;
+  margin: 10px 0;
+  border: none;
+  border-bottom: 2px solid #333;
+  outline: none;
+  resize: none;
+}
+
+.contact-form .input-box span {
+    transform: translateY(-25px);
+
+  position: absolute;
+  left: 0;
+  padding: 5px 0;
+  font-size: 16px;
+  margin: 10px 0;
+  pointer-events: none;
+  transition: 0.5s;
+  color: #666;
+}
+
+.contact-form .input-box input:focus ~ span,
+.contact-form .input-box textarea:focus ~ span{
+  color: var(--clr-accent-400);
+  font-size: 12px;
+  transform: translateY(-30px);
+}
+
+.contact-form .input-box input[type="submit"]
+{
+  width: 100%;
+  background: var(--clr-primary-500);
+  color: #FFF;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  font-size: 18px;
+  border: 1px solid var(--clr-primary-500);
+  transition: 0.5s;
+}
+
+.contact-form .input-box input[type="submit"]:hover
+{
+  background: #FFF;
+  color: var(--clr-primary-500);
+}
+
+@media (max-width: 991px) {
+  section {
+    padding-top: 50px;
+    padding-bottom: 50px;
+  }
+  
+  .row {
+    flex-direction: column;
+  }
+  
+  .contact-info {
+    margin-bottom: 40px;
+    width: 100%;
+  }
+  
+  .contact-form {
+    width: 100%;
+  }
+}
+</style>

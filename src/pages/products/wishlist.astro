@@ -1,0 +1,259 @@
+---
+import Wishlist_Item from "db/models/Wishlist_Item";
+import MainLayout from "@layouts/MainLayout.astro"; 
+import { verifyToken } from '@api/users/verifyToken';
+import ToastNotification from "@components/utilities/ToastNotification.astro";
+import Icon from "astro-icon";
+const userToken = await verifyToken(Astro.request);
+ const {userUUID } = userToken ?? {};
+ if(userUUID === undefined) return Astro.redirect('/');
+ import {getWishlistItems} from '@api/wishlist/loadUserWishlist/[user_uuid]'
+ const response = await getWishlistItems(userUUID);
+ const wishListProducts:Wishlist_Item[] = await response.json();
+---
+<MainLayout title="Your WishList | Technoworld" description="The page shows the products that the user has added to their wishlist">
+  <main id="main-content"></main>
+    <div class="flex">
+      <h1>Wishlist Items</h1>
+      {
+        wishListProducts.length === 0 ? null : <button class="delete-all"> <Icon name="mdi:delete-outline"/> Remove All</button>
+      }
+    </div>
+   <div class="wishlist-container">
+{
+  wishListProducts.length === 0 ? (
+    <h3 style="text-align: center;"> You currently do not have any items in your wishlist!</h3>
+  ) : (
+    wishListProducts.map(wishListProduct => {
+      const product = wishListProduct.Product;
+      return (
+          <a href={`/products/getProduct/${product.category}/${product.uuid}`} class="wishlist-item" data-product-id={product.uuid}>
+            <img src={`${product.image_src}`} alt={`${product.name}`} class="wishlist-item-image" width='300' height='120' transition:name={`product${product.uuid}`}  />
+            <div class="wishlist-item-details">
+            <p class="product-name">{product.name}</p>
+            <p class="price-tag">Price: <span class="price">{product.price}</span></p>
+            {
+             product.quantity === 0 && <p style="color: firebrick;"> Out of stock</p> 
+           }
+          </div>
+          <div class="buttons">
+            <button class='remove-btn | remove-wishlist-btn' data-product-id={`${product.uuid}`} data-notification-btn> <Icon name="mdi:delete-circle"/> Remove</button>
+            {
+              product.quantity > 0 &&
+               <button class='add-to-cart' type="button" data-product-id={`${product.uuid}`} data-notification-btn onclick="RemoveHref()"> <Icon name="mdi:cart-heart"/> Buy</button> 
+            }
+            </div>
+            </a>
+      );
+    })
+  )
+}
+   </div>
+
+<script is:inline>
+  function RemoveHref(){
+    const links = document.querySelectorAll(".wishlist-item");
+    links.forEach(a =>{
+      a.removeAttribute("href")
+    })
+  }
+</script>
+<script>
+      import { updateCartDropdown } from "src/scripts/dropdowns";
+
+ document.addEventListener("astro:page-load",()=>{
+   const deleteAllWishlistItemsBtn = document.querySelector(".delete-all") as HTMLButtonElement; if(!deleteAllWishlistItemsBtn) return;
+      const chatbox = document.querySelector(".chatbox") as HTMLInputElement;
+    const userUUID = chatbox.getAttribute("data-user-uuid")!;
+    
+  deleteAllWishlistItemsBtn.addEventListener("click",async ()=>{
+    const result = window.confirm("Are you sure you want to delete all your items added to the wishlist?");
+    if(result === false) return;
+    const response = await fetch(`/api/wishlist/deletAllWishListProducts/${userUUID}`,{
+      method: "DELETE",
+    })
+    if(!response.ok){
+      const errorMessage = await response.json();
+      alert(errorMessage.error)
+    }
+    const sucessMessage = await response.json();
+    alert(sucessMessage.message);
+    localStorage.setItem("wishlist", '[]');
+    location.href = '/';
+  })
+  const notificationInfo = document.querySelector('.toast-notification-info') as HTMLElement;
+       const addToCartButtons = document.querySelectorAll(".add-to-cart");
+      let cart = JSON.parse(localStorage.getItem("shopping_cart") || "[]");
+        addToCartButtons.forEach(button => {
+            button.addEventListener("click", async (e) => {
+              notificationInfo.textContent = "Product added to cart!";
+
+               const productUUID = ((e.target as HTMLElement).closest(".wishlist-item") as HTMLDivElement)!.dataset.productId;
+                 const productInfo = {
+                        user_uuid: userUUID,
+                        product_uuid: productUUID,
+                    };
+               const response =  await fetch('/api/shopping_cart/createCartItem',{
+                method: "POST",
+                headers: {
+                  'content-type': 'application/json',
+                },
+                body: JSON.stringify(productInfo)
+               })
+               const shoppingCartProducts = await response.json();
+               const{newShoppingCartItem = null, existingCartItem = null} = shoppingCartProducts;
+             if(newShoppingCartItem !== null){
+                cart.push(newShoppingCartItem.product_uuid)
+                localStorage.setItem("shopping_cart",JSON.stringify(cart))
+             }
+             if(existingCartItem !== null){
+                cart.push(existingCartItem.product_uuid)
+                localStorage.setItem("shopping_cart",JSON.stringify(cart))
+             }
+               
+
+updateCartDropdown();
+            });
+        });
+ })
+async function updateWishlistDropdown() {
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    if (isLoggedIn === 'false') return;
+
+    const chatbox = document.querySelector(".chatbox") as HTMLInputElement;
+    const userUUID = chatbox.getAttribute("data-user-uuid")!;
+    let wishlist = JSON.parse(localStorage.getItem("wishlist") || "[]");
+        
+        const wishlistQuality = document.querySelector('.qty') as HTMLElement;
+        wishlistQuality.textContent = `${wishlist.length}`;
+
+            const removeBtns = document.querySelectorAll(".remove-wishlist-btn") as NodeListOf<HTMLButtonElement>
+            removeBtns.forEach(removeBtn=>{
+              removeBtn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const clickedProductUUID = removeBtn.getAttribute("data-product-id");
+                 wishlist = wishlist.filter(product_uuid => product_uuid !== clickedProductUUID);
+                    localStorage.setItem("wishlist", JSON.stringify(wishlist));
+                    
+                    const correspondingHeartIcon = document.querySelector(`.heart[data-product-id="${clickedProductUUID}"]`);
+                    if (correspondingHeartIcon) {
+                      const correspondingIconPath = correspondingHeartIcon.querySelector("[astro-icon] > path") as HTMLElement;
+                      correspondingHeartIcon.classList.remove("liked");
+                      correspondingIconPath.style.fill = 'white';
+                }
+                const notificationInfo = document.querySelector('.toast-notification-info') as HTMLElement;
+                notificationInfo.textContent = "Product removed from wishlist!";
+                
+                await fetch(`/api/wishlist/deleteWishListProduct/${userUUID}/${clickedProductUUID}`,{
+              method: 'DELETE', 
+            })
+                const productCard = (e.target as HTMLElement).closest('.wishlist-item');
+                productCard && productCard.remove();
+           updateWishlistDropdown();
+           if(wishlist.length === 0){
+           setTimeout(() => {
+            location.reload();
+           }, 2000);
+          }
+            })
+      
+            });;
+}
+
+document.addEventListener("astro:page-load", updateWishlistDropdown);
+</script>
+   <style >
+        [astro-icon]{
+      width: 20px;
+      margin-bottom:-.3rem;
+    }
+    .flex{
+      display: flex;
+      justify-content: space-evenly;
+      align-items: center;
+    } 
+    h1{
+        margin-block: 1.5rem ;
+        text-align: center;
+        font-size: clamp(1.5rem, 2.1vw, 3.5rem);
+    }
+    .delete-all{
+      transition: .25s;
+      padding: .75rem clamp(.5rem, 2vw, 3rem);
+      border-radius: 1rem;
+       border:transparent;
+    box-shadow: -.2rem .2rem #121212;
+    transition:  translate 100ms, box-shadow 100ms, background-color 300ms;
+      background-color: var(--clr-primary-500);
+      color: var(--clr-neutral-100);
+      cursor: pointer;
+      font-size: .9rem;
+      &:active{
+          translate: .125rem .125rem;
+      box-shadow: -.125rem .125rem #121212;
+      }
+      &:where(:hover,:focus-visible){
+      background-color: var(--clr-primary-700);
+      
+      }
+    }
+    .wishlist-container{
+    margin-inline: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit,minmax(min(100%,600px),1fr));
+    gap: 1rem;
+        .wishlist-item{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--clr-accent-500);
+            margin-top: .5rem;
+            padding: .25rem .4rem;
+            @media (width <768px){
+                flex-direction: column;
+            }
+            &:where(:hover,:focus-within){
+              background-color: var(--clr-neutral-200);
+            }
+        }
+         & a:not(:nth-child(even)):last-child{
+          grid-column: span 2;
+          @media(width < 1000px){
+            grid-column: auto;
+          }
+        }
+        .wishlist-item-details{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: black;
+        }
+        .wishlist-item-image{
+          max-width: 200px;
+        }
+        .buttons{
+       display: flex;
+       flex-direction: column;
+       gap: .5rem;
+       margin-left: .5rem;
+        @media (width <768px){
+                flex-direction: row;
+                margin-bottom: .5rem;
+            }
+        }
+        .add-to-cart{
+          cursor: pointer;
+          transition: .25s;
+          background-color: var(--clr-primary-700);
+          border: 1px solid var(--clr-primary-700);
+          color: var(--clr-neutral-100);
+          padding: .25rem .5rem;
+          &:where(:hover,:focus-visible){
+            background-color: var(--clr-neutral-100);
+            color: var(--clr-neutral-900);
+          }
+        }
+    }
+   </style>
+    
+</MainLayout>

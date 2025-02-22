@@ -1,0 +1,47 @@
+---
+import { ViewTransitions } from "astro:transitions";
+interface Props {
+  title: string;
+  description: string;
+}
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const { title, description } = Astro.props;
+import "../styles/global.css";
+import LoadingIndicator from "astro-loading-indicator/component";
+---
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/icon.png" />
+  <meta name="generator" content={Astro.generator} />
+  <title>{title}</title>
+  <meta name="title" content={title} />
+  <meta name="description" content={description} />
+  <meta name="theme-color" id="theme-color-meta" content="#3d0015" />
+  <link
+    rel="preload"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800&display=swap"
+    as="style"
+    onload="this.onload=null;this.rel='stylesheet'"
+  />
+  <link rel="manifest" href="/manifest.json" />
+  <!-- Canonical URL -->
+  <link rel="canonical" href={canonicalURL} />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={Astro.url} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={new URL(Astro.url)} />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content={Astro.url} />
+  <meta property="twitter:title" content={title} />
+  <meta property="twitter:description" content={description} />
+  <meta property="twitter:image" content={new URL(Astro.url)} />
+
+  <ViewTransitions />
+  <LoadingIndicator color="orange" height=".4rem" />
+</head>

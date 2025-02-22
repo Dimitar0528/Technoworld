@@ -1,0 +1,39 @@
+---
+export interface SimilarProduct{
+    uuid:string;
+    image_src: string;
+    name: string;
+    price: number;
+    category: string;
+}
+const {image_src, name, price,category,uuid} = Astro.props;
+---
+<div class="similar-product-card">
+      <a href=`/products/getProduct/${category}/${uuid}` class="product-link">
+
+    <img  src={image_src}
+      alt={name} width="400" height="230"
+      transition:name=`product${uuid}` >
+    <h3 class="product-name" >{name} </h3>
+    <p class="price-tag">${price}</p>
+    </a>
+</div>
+
+<style>
+    .similar-product-card{
+        display: grid;
+        place-items: center;
+            max-width: 90%;
+            &:where(:hover,:focus-within) .product-name{
+              color: var(--clr-accent-500);
+            }
+            &:where(:hover,:focus-within) img{
+      transition: .3s;
+      opacity: .8;
+    }
+    }
+  img{
+    max-width: 100%;
+    margin-inline: auto;
+  }
+</style>

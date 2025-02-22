@@ -1,0 +1,132 @@
+---
+import CheckoutSteps from "@components/utilities/CheckoutSteps.astro";
+import MainHead from "@layouts/MainHead.astro";
+import { verifyToken } from "@api/users/verifyToken";
+import Shipping_Address from "db/models/Shipping_Address";
+const userToken = await verifyToken(Astro.request);
+let userUUID: string | null;
+ userToken !== null ? userUUID = userToken.userUUID : userUUID = Astro.url.searchParams.get('user_uuid')!
+ import {getShippingAddress} from '@api/shipping_address/loadUserAddress/[user_uuid]'
+ const shippingAddressResponse = await getShippingAddress(userUUID);
+        const user_shipping_address: Shipping_Address = await shippingAddressResponse.json(); 
+        const {shipping_address_uuid,User} = user_shipping_address ;
+--- 
+<MainHead title="Payment Successfull | Technoworld" description="The page shows when the user's payment is sucessfull"/>
+<section style="text-align: center; margin-top:2rem">
+        <CheckoutSteps step1="done" step2="done" step3="done"/> 
+
+    <h1 style="margin-block: 1.5rem;">Congratulations! Your payment was successfull!</h1>
+    <p>Redirecting you to the main page in     <span id="countdown">4</span> seconds </p>
+</section>
+
+ <script define:vars={{userUUID,User,shipping_address_uuid}}>
+
+
+   let total_price = localStorage.getItem('total_price');
+   const order_items = localStorage.getItem('order_items');
+        let countdown = 4;
+        function updateCountdown() {
+            document.getElementById('countdown').innerText = String(countdown);
+        }
+         function redirectAfterCooldown() {        
+        setTimeout(async function () {
+        location.href = location.origin;
+
+        localStorage.removeItem("total_price");   
+         localStorage.removeItem("order_items");
+         localStorage.removeItem("shopping_cart");
+     const response = await fetch(`/api/shopping_cart/deleteAllCartItems/${userUUID}`,{
+      method: "DELETE",
+ })
+    if(!response.ok){
+      const errorMessage = await response.json();
+      alert(errorMessage.error)
+    }
+            }, 5000);
+        }
+
+        async function startCountdown() {
+            updateCountdown();
+            redirectAfterCooldown();
+
+            var countdownInterval = setInterval(function () {
+                countdown -= 1;
+                updateCountdown();
+
+                if (countdown <= 0) {
+                    clearInterval(countdownInterval);
+                }
+            }, 1000); 
+            const selectedCurrency = localStorage.getItem("selectedCurrency");
+            if(selectedCurrency === 'bgn') total_price = (total_price * 0.553951367781155).toFixed(0);
+            if(selectedCurrency === 'eur') total_price = (total_price * 1.084821428571429).toFixed(0);
+            const orderObj = {
+            order_uuid: crypto.randomUUID(),              
+             user_uuid: userUUID,
+             ship_address_uuid: shipping_address_uuid,
+             order_items: order_items,
+             total_price_amount: total_price,
+             order_status: 'processing',
+             payment_status: 'successfull'
+            }
+             await fetch('/api/orders/createOrder',{
+                 method: 'POST',
+                 headers: {
+                     'content-type': 'application/json',
+                 },
+                 body:JSON.stringify(orderObj),
+             })
+             
+      const response = await fetch(`/api/shopping_cart/loadUserCart/${userUUID}`, {
+         method: 'GET',
+      });
+
+      if (!response.ok) {
+         const errorMessage = await response.json(); 
+         console.error(errorMessage.error);
+         return;
+      }
+
+      const cartProducts = await response.json();
+      
+        //send an email with the order information
+            let message = `
+            <h1> Information for order ${orderObj.order_uuid}! </h1>
+            <p> Order status: <strong>${orderObj.order_status}</strong> </p>
+            <p> Total price: <strong>$${orderObj.total_price_amount} </strong> </p> <br />
+            <h2> For more in-depth information about your order, visit our website. </h2> <br />
+            <h3> Information for each ordered product: </h3>
+            `;     
+      for (const cartProduct of cartProducts) {
+          cartProduct.Product.quantity -= cartProduct.product_quantity;
+          await fetch(`/api/products/editProduct/${cartProduct.Product.uuid}`, {
+              method: 'PUT',
+              headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(cartProduct.Product),
+            });
+            for(let i =0 ;i< cartProduct.product_quantity ;i++){
+        let html = `<div class="product-information">
+         <p> Product name: <strong> ${cartProduct.Product.name} </strong>  </p>
+         <p> Category: <strong> ${cartProduct.Product.category} </strong>  </p>
+         <p> Price: <strong> $${cartProduct.Product.price} </strong> </p>
+         </div>`;
+         message += html;
+            }
+        }
+            const requestObj = {
+            email: User.email_adress,
+            role: User.role,
+            message: message,
+                    }
+                    await fetch(`/api/users/sendEmail/sendMessage`, {
+                       method: 'POST',
+                       headers: {
+                          'Content-Type': 'application/json',
+                       },
+                       body: JSON.stringify(requestObj), 
+                    });
+        }
+        document.addEventListener('DOMContentLoaded', startCountdown);
+    </script>

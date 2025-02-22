@@ -1,0 +1,100 @@
+---
+interface Props {
+  step1: "active" | "todo" | "done";
+  step2: "active" | "todo" | "done";
+  step3: "active" | "todo" | "done";
+}
+const { step1, step2, step3 } = Astro.props;
+---
+
+<link
+  rel="stylesheet"
+  href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+/>
+<ol id="progress-bar">
+  <li class=`step-${step1}`>Cart</li>
+  <li class=`step-${step2}`>Shipping details</li>
+  <li class=`step-${step3}`>Payment</li>
+</ol>
+
+<style>
+  /* Progress bar */
+  #progress-bar {
+    display: table;
+    width: 100%;
+    margin: 0;
+    table-layout: fixed;
+    width: 100%;
+    counter-reset: step;
+    @media (width < 950px) {
+      margin-top: 1rem;
+    }
+  }
+
+  #progress-bar li {
+    list-style-type: none;
+    display: table-cell;
+    width: 33%;
+    float: left;
+    font-size: 16px;
+    position: relative;
+    text-align: center;
+  }
+
+  #progress-bar li:before {
+    width: 50px;
+    height: 50px;
+    color: var(--clr-neutral-900);
+    content: counter(step);
+    counter-increment: step;
+    line-height: 50px;
+    font-size: 18px;
+    border: 1px solid var(--clr-neutral-200);
+    display: block;
+    text-align: center;
+    margin: 0 auto 10px auto;
+    border-radius: 50%;
+    background-color: var(--clr-neutral-100);
+  }
+
+  #progress-bar li:after {
+    width: 100%;
+    height: 10px;
+    content: "";
+    position: absolute;
+    background-color: var(--clr-neutral-200);
+    top: 25px;
+    left: -50%;
+    z-index: -1;
+  }
+
+  #progress-bar li:first-child:after {
+    content: none;
+  }
+
+  #progress-bar li.step-done {
+    color: var(--clr-primary-800);
+  }
+
+  #progress-bar li.step-done:before {
+    border-color: var(--clr-primary-500);
+    background-color: var(--clr-primary-500);
+    color: #fff;
+    content: "\f00c";
+    font-family: "FontAwesome";
+  }
+
+  #progress-bar li.step-done + li:after {
+    background-color: var(--clr-primary-500);
+  }
+
+  #progress-bar li.step-active {
+    color: var(--clr-primary-500);
+  }
+
+  #progress-bar li.step-active:before {
+    border-color: var(--clr-primary-500);
+    color: var(--clr-primary-500);
+    font-weight: 700;
+  }
+</style>

@@ -1,0 +1,148 @@
+---
+const {
+  uuid,
+  start_time,
+  end_time,
+  name,
+  product_uuid,
+  bid_counter,
+  current_highest_bid,
+  purchase_price,
+} = Astro.props;
+import { getProducts as GetProduct } from "@api/products/getProduct/[product_uuid]";
+import type Product from "db/models/Product";
+const response: Response = await GetProduct(product_uuid);
+if (!response.ok)
+  return new Response(null, {
+    status: 404,
+    statusText: "Page Not found",
+  });
+const product: Product = await response.json();
+import Icon from "astro-icon";
+const now = new Date();
+
+const start_time_locale = new Date(start_time).toLocaleString("en-GB");
+---
+
+<div class="auction">
+  <a href=`/auctions/getAuction/${uuid}` class="auction-link">
+    <div class="auction-head">
+      <img
+        src={product.image_src}
+        alt={product.name}
+        width="350"
+        height="200"
+        transition:name=`product${product.uuid}`
+      />
+    </div>
+    <div class="auction-body">
+      <p>{start_time_locale}</p>
+      <div>
+  {start_time <= now ? (
+    <div>
+      {end_time < now ? (
+        <p class="status">Ended</p>
+      ) : current_highest_bid > purchase_price ? (
+        <p class="status">Closed</p>
+      ) : (
+        <p class="status">Active now</p>
+      )}
+    </div>
+  ) : (
+    <p class="status">Not active yet</p>
+  )}
+</div>
+
+
+      <h3 class="product-name">{name}</h3>
+      {
+        current_highest_bid < purchase_price ? (
+          <p class="bid">
+            <Icon name="mdi:gavel" class="bid-icon" />
+            <span class="bidders-count">{bid_counter}</span>$
+            {current_highest_bid}
+          </p>
+        ) : (
+          <p class="bid">
+            <Icon name="mdi:cart" class="bid-icon" />${purchase_price}
+          </p>
+        )
+      }
+    </div>
+  </a>
+  <div class="cta-admin-buttons">
+    <a href=`/auctions/editAuction/${uuid}` style="color: white;">Edit</a>
+    <button class="delete-auction" data-auction-id={uuid}> Delete</button>
+  </div>
+</div>
+
+<style>
+  .status {
+    background-color: var(--clr-accent-600);
+    color: var(--clr-neutral-100);
+    display: inline-block;
+    padding-inline: 0.25rem;
+    border-radius: 0.25rem;
+  }
+  p {
+    margin-top: 0.6rem;
+  }
+  .bid {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    margin-bottom: 1rem;
+    & .bidders-count {
+      position: absolute;
+      font-size: 0.65rem;
+      left: 5.9rem;
+      top: -0.25rem;
+      background-color: var(--clr-accent-500);
+      color: var(--clr-neutral-100);
+      padding-inline: 0.35rem;
+      border-radius: 0.5rem;
+    }
+  }
+  img {
+    object-fit: cover;
+    border-radius: 1rem;
+    border: 1px solid black;
+    border-bottom: none;
+  }
+  .auction {
+    display: grid;
+    text-align: center;
+    background-color: var(--clr-secondary-100);
+    border-radius: 1rem;
+        transition: .25s;
+
+    & a {
+      color: black;
+    }
+    &:hover{
+      scale: 1.02;
+    }
+    &:not(:hover){
+      scale: 0.98;
+    }
+  }
+
+  .bid-icon {
+    width: 23px;
+    margin-right: 0.2rem;
+    background-color: var(--clr-primary-600);
+    color: white;
+    margin-bottom: -0.15rem;
+    border-radius: 0.25rem;
+  }
+</style>
+
+<script define:vars={{ start_time }}>
+  // setInterval(() => {
+  //   const now = new Date().toLocaleString("en-GB");
+  // if(start_time === now) location.reload();
+  // }, 1000);
+</script>
+<script>
+  document.addEventListener("astro:page-load", () => {});
+</script>

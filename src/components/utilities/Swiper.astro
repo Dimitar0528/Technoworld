@@ -1,0 +1,182 @@
+---
+import CouponPromotion from "@components/CouponPromotion.astro";
+import { Image } from "astro:assets";
+---
+
+<div class="swiper-container">
+  <div class="swiper-wrapper">
+    <div class="swiper-slide">
+      <picture>
+        <source
+          srcset="
+                https://www.technopolis.bg/medias/sys_master/images/h09/hbd/31691211997214.jpg
+              "
+          media="(min-width: 1500px)"
+        />
+        <source
+          srcset="
+                https://www.technopolis.bg/medias/sys_master/images/hb3/h44/31691212914718.jpg
+              "
+          media="(min-width: 1200px)"
+        />
+        <source
+          srcset="
+                https://www.technopolis.bg/medias/sys_master/images/h08/h7f/31691212849182.jpg
+              "
+          media="(min-width: 450px)"
+        />
+        <Image
+          src="https://www.technopolis.bg/medias/sys_master/images/h5f/he2/31691212980254.jpg"
+          width="1500"
+          height="400"
+          decoding="async"
+          alt="Showcase Product 1"
+          loading="eager"
+        />
+      </picture>
+    </div>
+
+    <div class="swiper-slide">
+      <picture>
+        <source
+          srcset="
+                https://www.technopolis.bg/medias/sys_master/images/h52/hc7/31691223334942.jpg
+              "
+          media="(min-width: 1500px)"
+        />
+        <source
+          srcset="
+                https://www.technopolis.bg/medias/sys_master/images/h5f/h90/31691224776734.jpg
+              "
+          media="(min-width: 1200px)"
+        />
+        <source
+          srcset="
+                https://www.technopolis.bg/medias/sys_master/images/hdf/h05/31691230609438.jpg
+              "
+          media="(min-width: 450px)"
+        />
+        <Image
+          src="https://www.technopolis.bg/medias/sys_master/images/hc7/h9b/31691224842270.jpg"
+          width="1500"
+          height="400"
+          decoding="async"
+          alt="Showcase Product 2"
+          loading="eager"
+        />
+      </picture>
+    </div>
+
+    <div class="swiper-slide">
+      <picture>
+        <source
+          srcset="https://www.technopolis.bg/medias/sys_master/images/hb2/he0/31776638894110.jpg"
+          media="(min-width: 1500px)"
+        />
+        <source
+          srcset="https://www.technopolis.bg/medias/sys_master/hfa/h6d/31776639025182.jpg"
+          media="(min-width: 1200px)"
+        />
+        <source
+          srcset="https://www.technopolis.bg/medias/sys_master/images/hd2/h51/31776638959646.jpg"
+          media="(min-width: 450px)"
+        />
+        <Image
+          src="https://www.technopolis.bg/medias/sys_master/images/h87/h02/31776639090718.jpg"
+          width="1500"
+          height="400"
+          decoding="async"
+          alt="Showcase Product 3"
+          loading="eager"
+        />
+      </picture>
+    </div>
+  </div>
+  <div class="swiper-slide">
+    <CouponPromotion />
+  </div>
+</div>
+
+<div class="swiper-button-next"></div>
+<div class="swiper-button-prev"></div>
+
+<div class="swiper-pagination"></div>
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"
+/>
+<style>
+  .swiper-pagination-bullet {
+    width: 30px; /* Set the width of each bullet */
+    height: 30px; /* Set the height of each bullet */
+    background-color: #3498db; /* Background color of inactive bullets */
+    margin: 0 5px; /* Adjust the space between bullets */
+    border-radius: 50%; /* Apply border-radius for a circular shape */
+    cursor: pointer;
+    transition: background-color 0.3s ease; /* Add a smooth transition effect */
+  }
+
+  .swiper-pagination-bullet-active {
+    background-color: #217dbb; /* Background color of the active bullet */
+  }
+
+  .swiper-container {
+    overflow: hidden;
+    margin-block: 1.5rem;
+    width: 95%;
+    margin-inline: auto;
+    @media (width < 768px) {
+      margin-block: 0;
+    }
+  }
+  .swiper-button-next,
+  .swiper-button-prev {
+    background-color: var(--clr-secondary-200);
+    color: var(--clr-accent-400);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    margin-inline: -0.5rem;
+    margin-top: -1.6rem;
+
+    transition: background-color 0.3s ease;
+  }
+  .swiper-button-next:where(:hover, :focus-visible),
+  .swiper-button-prev:where(:hover, :focus-visible) {
+    background-color: var(--clr-accent-400);
+    color: var(--clr-secondary-700);
+  }
+</style>
+
+<script type="module" defer>
+  import Swiper from "https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.mjs";
+  function declareSwiper() {
+    let swiper = new Swiper(".swiper-container", {
+      loop: true,
+      autoplay: {
+        delay: 3500,
+        disableOnInteraction: false,
+      },
+      spaceBetween: 200,
+      speed: 1000,
+      keyboard: true,
+      grabCursor: true,
+      effect: "coverflow",
+      coverflowEffect: {
+        rotate: 10,
+        stretch: 10,
+      },
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+    });
+  }
+  declareSwiper();
+  document.addEventListener("astro:after-swap", declareSwiper);
+</script>

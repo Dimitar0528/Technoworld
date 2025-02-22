@@ -1,0 +1,121 @@
+---
+---
+<section class='toast'>
+  <div class='toast-notification '>
+    <div class='toast-notification-container'>
+      <h2 class='toast-notification-title'>Success!</h2>
+      <p class='toast-notification-info'></p>
+    </div>
+    <div class='toast-notification-timeline'></div>
+  </div>
+</section>
+<style is:global>
+   .toast {
+  position: absolute;
+}
+
+.toast-notification {
+   z-index: 12;
+  position: fixed;
+  left: 2rem;
+  top: 10vmin;
+  width: min(325px,90vw);
+  box-shadow: 0 0 16px 10px rgba(0,0,0,0.1);
+  font: 400 0.75rem poppins,helvetica,sans-serif;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(-450px);
+    background-color: white;;
+    transition: transform 0.8s;
+}
+
+.toast-notification-title {
+  font-size: 1.25rem;
+  line-height: 2.5;
+  color: rgba(0,0,0,0.75);
+}
+
+.toast-notification-info { 
+color: rgba(0,0,0,0.65);
+font-size: clamp(.9rem, 1.05vw, 1.5rem);
+ }
+
+.toast-notification-timeline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 0.2rem;
+  background-color: black;
+  transform-origin: left;
+}
+
+@keyframes countdown {
+  to {
+    transform: scaleX(0);
+  }
+}
+
+.animate { animation: countdown var(--duration) linear forwards; }
+
+.active.toast-notification { transform: translateX(0); }
+</style>
+
+<script>
+function toastNotification() {
+  const notification = document.querySelector('.toast-notification') as HTMLDivElement;
+  if(!notification) return;
+  const timeline = document.querySelector('.toast-notification-timeline') as HTMLDivElement;
+  const buttons = document.querySelectorAll('[data-notification-btn]:not(.copy-btn)') as NodeListOf<HTMLButtonElement>
+  let time = 2;
+  let interval;
+  let isNotificationActive = false;
+
+  function reset() {
+    time = 2;
+    notification.classList.remove('active');
+    timeline.classList.remove('animate');
+    clearInterval(interval);
+    isNotificationActive = false;
+    
+    // Re-enable button interactions
+    buttons.forEach(button => {
+      button.disabled = false;
+    });
+  }
+
+  function countdown() {
+    interval = setInterval(() => {
+      time--;
+      !time && reset();
+    }, 1000);
+  }
+
+  document.addEventListener('click', (event) => {
+    const clickedButton = (event.target as Element).closest('[data-notification-btn]');
+
+    if (clickedButton && !isNotificationActive) {
+      reset();
+
+      // Disable button interactions
+      buttons.forEach(button => {
+        button.disabled = true;
+      });
+
+      notification.classList.add('active');
+      timeline.style.setProperty('--duration', `${time}s`);
+      timeline.classList.add('animate');
+      countdown();
+      isNotificationActive = true;
+    }
+  });
+}
+
+toastNotification();
+document.addEventListener("astro:after-swap", toastNotification);
+
+</script>

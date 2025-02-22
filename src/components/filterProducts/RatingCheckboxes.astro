@@ -1,0 +1,29 @@
+---
+import type Product from "db/models/Product";
+import CheckBoxes from "./checkboxes/Checkboxes.astro";
+const ratings = ["5-stars", "4-stars", "3-stars", "2-stars", "1-star"];
+const { products, filteredProducts } = Astro.props;
+function countRatings(products: Product[]) {
+  // Count occurrences of each rating in product ratings
+  const ratingCounts: { [key: string]: number } = ratings.reduce(
+    (counts, rating) => {
+      counts[rating] = products.reduce((total, product) => {
+        const productRating = String(product.average_rating);
+        return total + (productRating.includes(rating.split("-")[0]) ? 1 : 0);
+      }, 0);
+      return counts;
+    },
+    {}
+  );
+  return ratingCounts;
+}
+---
+
+<CheckBoxes
+  headerName="Product Rating"
+  cssClass="rating-checkbox"
+  filterArray={ratings}
+  paramName="rating"
+  product_quantity={countRatings(products)}
+  relative_product_quantity={countRatings(filteredProducts)}
+/>

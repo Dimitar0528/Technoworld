@@ -1,0 +1,64 @@
+---
+import type Product from "db/models/Product";
+import CheckBoxes from "./checkboxes/Checkboxes.astro";
+
+const specs = [
+  "ram 6 gb",
+  "ram 8 gb",
+  "ram 16 gb",
+  "ram 32 gb",
+  "ssd 128 gb",
+  "ssd 256 gb",
+  "ssd 512 gb",
+  "ssd 1 tb",
+  "hdd 1 tb",
+  "windows 10",
+  "windows 11",
+  "nvidia gtx 1080",
+  "nvidia gtx 1650",
+  "nvidia gtx 1660",
+  "nvidia rtx 3050",
+  "nvidia rtx 3050Ti",
+  "nvidia rtx 3060",
+  "nvidia rtx 3070",
+  "nvidia rtx 3080",
+  "nvidia rtx 4070",
+  "nvidia rtx 4080",
+  "nvidia rtx 4090",
+];
+const { products, filteredProducts } = Astro.props;
+
+function countSpecs(products: Product[]) {
+  // Count occurrences of each specification in product names
+  const specCounts: { [key: string]: number } = specs.reduce((counts, spec) => {
+    const specLowerCase = spec.toLowerCase();
+    const isSingleDigit = /\b\d\b/.test(specLowerCase); // Check if it contains a single digit
+    counts[spec] = products.reduce((total, product) => {
+      const productNameLowerCase = product.name.toLowerCase();
+      return (
+        total +
+        +(
+          (isSingleDigit && productNameLowerCase.includes(specLowerCase)) ||
+          (!isSingleDigit &&
+            specLowerCase
+              .split(",")
+              .join(", ")
+              .split(/\s+/)
+              .every((specWord) => productNameLowerCase.includes(specWord)))
+        )
+      );
+    }, 0);
+    return counts;
+  }, {});
+  return specCounts;
+}
+---
+
+<CheckBoxes
+  headerName="Specifications"
+  cssClass="spec-checkbox"
+  filterArray={specs}
+  paramName="specs"
+  product_quantity={countSpecs(products)}
+  relative_product_quantity={countSpecs(filteredProducts)}
+/>

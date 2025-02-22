@@ -1,0 +1,398 @@
+---
+import User from "db/models/User";
+const {uuid,username,first_name,last_name,  email_adress, phone_number, gender } = Astro.props as User
+---
+<form name="edit-form" class="container">
+
+	<h1 class="title">
+Edit my account</h1>
+
+	<div class="grid">
+		<div class="form-group a">
+			<label for="name">Username</label>
+			<input id="name" type="text" placeholder="Enter your username..." value={username} required>
+		</div>
+
+		<div class="form-group b">
+			<label for="first-name">First Name</label>
+			<input id="first-name" type="text" placeholder="Enter your first name..."  value={first_name} required>
+		</div>
+
+		<div class="form-group c">
+			<label for="last-name">Last Name</label>
+			<input id="last-name" type="text" placeholder="Enter your last name..."  value={last_name} required>
+		</div>
+
+		<div class="form-group">
+			<label for="email-adress">Email Adress</label>
+			<input id="email-adress" type="text" placeholder="Enter your email adress..."  value={email_adress} required>
+		</div>
+        
+		<div class="form-group">
+			<label for="phone">Phone Number</label>
+			<input id="phone" type="tel" placeholder="Enter your phone number..."  value={phone_number} required>
+		</div>
+		<div class="form-group">
+			<label for="gender">Gender <span class="not-required">(Not required)</span></label>
+			<select name="gender" id="gender">
+                <option value=""></option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+		</div>
+	</div>
+
+	<div class="button-container">
+		<button type="button" class="button 
+		delete-btn">Delete Account</button>
+		<button type="button" class="button 
+		log-out">Log Out</button>
+		<button type="button" class="button 
+		| edit-password">Reset Password</button>
+		<input type="submit" value="Save changes" class="button | submit-btn"/>
+	</div>
+</form>
+<dialog id="passwordModal"  class="password-modal">
+<div class="modal-content">
+<h2>Reset Password</h2>
+<p>The same rules apply for new password: To be at least 8 characters long and to have at least one capitalized letter and number</p>
+<form class="reset-password">
+	<label for="newPassword">New Password:</label>
+	<input type="password" id="newPassword" autocomplete="off" required><br>
+	<label for="repeatPassword">Repeat New Password:</label>
+	<input type="password" id="repeatPassword" autocomplete="off" required><br>
+	<input type="submit" value='Save New Password' id="savePassword" class="button">
+</form>
+<button type="button" id="closeModal" class="button | close-btn">Cancel</button>
+</div>
+</dialog>
+
+<style>
+	.password-modal {
+  width:max(28rem, 30%);
+    margin: auto;
+    padding: 1.2rem;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: fadeIn 0.3s ease-in-out;
+ &::backdrop{
+  backdrop-filter: blur(5px);
+ }
+}
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.dialog-closing {
+    animation: fadeOut 0.3s ease-in-out;
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+.modal-content input {
+	margin-top: .5rem;
+  margin-bottom: 10px;
+  width: 85%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.modal-content button {
+  margin-top: 10px;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+
+    body{
+   font-family:Arial, Helvetica, sans-serif;
+    }
+.container {
+	background: white;
+	width: 100%;
+  margin-inline: auto;
+}
+
+.title {
+	font-size: 24px;
+	line-height: 28px;
+	font-weight: bold;
+	color: #374151;
+	padding-bottom: 11px;
+	border-bottom: 1px solid #d7dbdf;
+}
+
+.form-group {
+	margin-top: 25px;
+	display: flex;
+	flex-direction: column;
+}
+
+.form-group label {
+	color: #374151;
+	font-size: 16px;
+	line-height: 19px;
+	margin-bottom: 10px;
+}
+
+.form-group [type], select{
+	border: 1px solid #d2d6db;
+	border-radius: 6px;
+	padding: 15px;
+	max-width: 100%;
+}
+.form-group [type]:where(:hover,:focus-visible), select:where(:hover,:focus-visible){
+		border-color: var(--clr-accent-500);
+
+}
+.not-required{
+    opacity: .85;
+}
+
+.button {
+	transition: .25s;
+    cursor: pointer;
+	font-weight: bold;
+	line-height: 19px;
+	background: #5850eb;
+	border: none;
+	padding: 15px 25px;
+	border-radius: 6px;
+	color: white;
+	width: 100%;
+	margin-top: 1rem;
+}
+.button:where(:hover, :focus-visible){
+    background: #6e67ee;
+}
+.button:nth-child(2n+1){
+	background-color: hsl(0, 68%, 42%);
+	&:where(:hover,:focus-visible){
+		background-color: hsl(0, 68%, 52%);;
+	}
+}
+@media screen and (min-width: 768px) {
+	body {
+		align-items: center;
+		justify-content: center;
+	}
+
+	.container {
+		margin-block: 2rem;
+		margin-inline: auto;
+		box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.1);
+		border-radius: 4px;
+		max-width: 30rem;
+		padding: 2rem;
+	}
+}
+@media screen and (min-width: 1024px) {
+	.container {
+		max-width:90%;
+		width: 100%;
+	}
+	.grid {
+		display: grid;
+	    gap: 24px;
+		grid-template-columns: repeat(3,1fr);
+		grid-auto-rows: 1fr;
+	}
+	.button-container {
+		margin-top: 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: end;
+		gap: 2rem;
+	}
+
+	.button {
+		width: auto;
+	}
+	.form-group [type], select{
+		max-width: 100%;
+	}
+}
+</style>
+
+<script define:vars={{uuid,username,first_name,last_name,  email_adress, phone_number, gender}}>
+
+    document.addEventListener("astro:page-load", async () => {
+  const nameInput = document.getElementById('name'); if(!nameInput) return;
+  const firstNameInput = document.getElementById('first-name');
+  const lastNameInput = document.getElementById('last-name')
+  const emailInput = document.getElementById("email-adress");
+  const phoneInput = document.getElementById('phone');
+  const genderInput = document.getElementById('gender');
+  genderInput.value = gender 
+  const editBtn = document.querySelector('.submit-btn');
+     if (editBtn && editBtn.hasEventListener) return
+  editBtn.hasEventListener = true;
+
+  editBtn.addEventListener('click', async (event) => {
+	  event.preventDefault();
+	  if(nameInput.value === username && firstNameInput.value === first_name && lastNameInput.value === last_name && emailInput.value === email_adress && phoneInput.value === phone_number && genderInput.value === gender) return alert("First change your details in order to update them!");
+	  
+    const editedAccount = {
+      username: nameInput.value,
+      first_name: firstNameInput.value,
+      last_name: lastNameInput.value,
+      email_adress: emailInput.value,
+      phone_number: phoneInput.value,
+      gender: genderInput.value
+    };
+    const response = await fetch(`/api/users/editAccount/${uuid}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(editedAccount),
+    });
+
+    if (response.ok) {
+      const responseData = await response.json();
+      alert(responseData.message);
+     location.reload();
+    } else {
+      const responseData = await response.json();
+      alert(`Error: ${responseData.error}`);
+    }
+  });
+
+  const editPasswordButton = document.querySelector('.edit-password');
+const passwordModal = document.getElementById('passwordModal');
+const newPasswordInput = document.getElementById('newPassword');
+const repeatPasswordInput = document.getElementById('repeatPassword');
+const resetPasswordForm = document.querySelector(".reset-password")
+const closeModalButton = document.getElementById('closeModal');
+const fpURL = location.href.split('?')[1];
+if(fpURL) {
+	passwordModal.showModal();
+	closeModalButton.style.display = 'none';
+     
+}
+editPasswordButton.addEventListener('click', () => {
+  passwordModal.showModal();
+  passwordModal.style.display = 'grid';
+});
+
+closeModalButton.addEventListener('click', () => {
+	    passwordModal.classList.add('dialog-closing');
+    setTimeout(() => {
+        passwordModal.close();
+        passwordModal.classList.remove('dialog-closing');
+		passwordModal.style.display = 'none';
+		resetPasswordForm.reset();
+    }, 300);
+
+});
+resetPasswordForm.addEventListener("submit",async (e)=>{
+	e.preventDefault();
+	const newPassword = newPasswordInput.value;
+  const repeatPassword = repeatPasswordInput.value;
+   const hasCapital = /[A-Z]/.test(newPassword);
+    const hasNumber = /[0-9]/.test(newPassword);
+ if(newPassword === '' && repeatPassword === '') return alert("Enter the new password!")
+    if (newPassword.length < 8) return alert("Password must contain at least 8 characters");
+    if (!hasCapital) return alert("Password must contain capitalized letters");
+    if (!hasNumber) return alert("Password must contain numbers");
+
+ if (newPassword !== repeatPassword) return alert('Passwords do not match. Please try again.');
+   const response = await fetch(`/api/users/resetPassword/${emailInput.value}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newPassword),
+    });
+
+    if (response.ok) {
+      const responseData = await response.json();
+      alert(responseData.message);
+	  fpURL ? location.href='/account/sign-in' : location.reload();
+    } else {
+      const responseData = await response.json();
+      alert(`Error: ${responseData.error}`);
+    }
+  });
+
+ 
+  const logOutBtn = document.querySelector(".log-out");
+
+  logOutBtn.addEventListener('click',async ()=>{
+  const confirmWindowResult = window.confirm('Are you sure you want to log out from your account?');
+	if(confirmWindowResult !==true) return;
+
+try {
+    const response = await fetch("/api/users/miscellaneous/deleteCookie", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.error}`);
+    } else {
+      const responseData = await response.json();
+      alert(responseData.message);
+      location.href = '/';
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An unexpected error occurred.");
+  }  
+  });
+  const deleteBtn = document.querySelector(".delete-btn");
+  deleteBtn.removeEventListener('click', deleteUser)
+  deleteBtn.addEventListener('click', deleteUser);
+})
+
+ async function deleteUser(){
+  const confirmWindowResult = window.confirm('Are you sure you want to delete your account?');
+	if(confirmWindowResult !== true) return;
+
+    try{
+	 const response = await fetch(`/api/users/deleteUser/${uuid}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.error}`);
+    } else {
+      const responseData = await response.json();
+      alert(responseData.message);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("An unexpected error occurred.");
+  }
+
+   const response = await fetch("/api/users/miscellaneous/deleteCookie", {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      alert(`Error: ${errorData.error}`);
+    } else {
+		location.href = '/';
+
+    }
+ }
+</script>

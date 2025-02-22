@@ -1,0 +1,388 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { Rating } from "astro-headless-ui";
+
+import Product from "db/models/Product";
+import Product_Review from "db/models/Product_Review";
+
+import { GET as GetAllReviews } from "@api/product_reviews/loadAllReviews/[product_uuid]";
+const reviewResponse: Response = await GetAllReviews(Astro);
+const product_reviews: Product_Review[] = await reviewResponse.json();
+
+import ProductCard from "@components/cards/ProductCard.astro";
+import RateProduct from "@components/utilities/RateProduct.astro";
+import { GET as GetProduct } from "@api/products/getProduct/[product_uuid]";
+import { GetCategoryProducts } from "@api/products/getCategoryProducts/[product_category]";
+import Icon from "astro-icon";
+import ProductCarousel from "@components/utilities/ProductCarousel.astro";
+
+const response: Response = await GetProduct(Astro);
+if (!response.ok)
+  return new Response(null, {
+    status: 404,
+    statusText: "Page Not found",
+  });
+const product: Product = await response.json();
+const recProductsResponse: Response = await GetCategoryProducts(Astro);
+const recommendedProducts = await recProductsResponse.json();
+const filteredRecommendedProducts: Product[] = recommendedProducts.filter(
+  (recommendedProduct: Product) => {
+    return recommendedProduct.name !== product.name;
+  }
+);
+
+function getRandomProducts(
+  products: Product[],
+  numProducts: number
+): Product[] {
+  const shuffledProducts = products.sort(() => Math.random() - 0.5);
+  return shuffledProducts.slice(0, numProducts);
+}
+const randomRecommendedProducts: Product[] = getRandomProducts(
+  filteredRecommendedProducts,
+  4
+);
+---
+
+<MainLayout
+  title="Product Information | Technoworld"
+  description="Page showing details for the product, based on its id">
+  <script src="https://unpkg.com/js-image-zoom@0.7.0/js-image-zoom.js" defer
+  ></script>
+
+  <main id="main-content">
+    <section class="product-section" data-product-id={product.uuid}>
+      <div class="flex" style="flex-direction: column;">
+        <div class="img-zoom-container">
+          <img
+            id="selectedImage"
+            src={product.image_src}
+            alt={product.name}
+            transition:name=`product${product.uuid}`
+            width="400"
+            height="400"
+          />
+          <p style="text-align: center;">
+            Hover on the image to zoom it<span class="warning"
+              >(Desktop only!)</span
+            >
+          </p>
+        </div>
+        <ProductCarousel
+          img_src={product.image_src}
+          img_src_2={product.image_src_2}
+          img_src_3={product.image_src_3}
+        />
+      </div>
+      <div class="product-info">
+        <p class="product-name-full">{product.name}</p>
+        <div class="flex" style="justify-content: start;">
+          <p class="product-category">{product.category}</p>
+          <p class="price-tag">
+            Price: <span class="price">{product.price}</span>
+          </p>
+          <p>Quantity: {product.quantity}</p>
+        </div>
+        <p class="product-description">
+          <span style="font-weight: 700; " data-text>Description: </span>
+          {product.description}
+        </p>
+        <div class="flex">
+          {
+            product.quantity > 0 ? (
+              <button type="button" class="add-to-cart" data-notification-btn>
+                <Icon name="mdi:cart" /> Buy Now
+              </button>
+            ) : (
+              <p class="out-of-order"> Out of stock</p>
+            )
+          }
+          <button
+            type="button"
+            class="heart"
+            name="wishlist-btn"
+            aria-label="wishlist-btn"
+            data-notification-btn
+            title="Add product to wishlist">
+            <Icon name="mdi:heart" style="width: 35px" />
+          </button>
+        </div>
+        <!-- <div class="cta-admin-buttons">
+        <a href=`/products/editProduct/${product.uuid}`>Edit</a>
+       <button class="delete-product | main-delete-product-btn" data-product-id={product.uuid}> Delete</button>
+      </div> -->
+      </div>
+    </section>
+    <div class="flex | rate-wrapper" style="gap: 5rem">
+      <RateProduct product_uuid={product.uuid} />
+
+      <section class="product-reviews">
+        <h2>Look at these reviews for the product</h2>
+        {
+          (
+            <div class="review-summary">
+              <div>
+                <p class="average-rating"> {product.average_rating} </p>
+                <p>
+                  <Rating total="5" active={product.average_rating}>
+                    <Icon slot="active" name="codicon:star-full" />
+                    <Icon slot="half" name="codicon:star-half" />
+                    <Icon slot="disabled" name="codicon:star-empty" />
+                  </Rating>
+                </p>
+                {product_reviews.length === 1 ? (
+                  <p>{product_reviews.length} review </p>
+                ) : (
+                  <p>{product_reviews.length} reviews </p>
+                )}
+              </div>
+              <div>
+                {[5, 4, 3, 2, 1].map((rating) => (
+                  <div class="flex">
+                    <label for={`stars-${rating}`}>{rating} stars</label>
+                    <meter
+                      id={`stars-${rating}`}
+                      min="0"
+                      max="100"
+                      value={
+                        (product_reviews.filter(
+                          (review) => review.rating === rating
+                        ).length /
+                          product_reviews.length) *
+                        100
+                      }
+                    />
+                    <p class="counter">
+                      {
+                        product_reviews.filter(
+                          (review) => review.rating === rating
+                        ).length
+                      }
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
+        }
+      </section>
+    </div>
+    <section class="rating">
+      {
+        product_reviews.length === 0 ? (
+          <h3 class="no-reviews">No reviews yet.</h3>
+        ) : (
+          product_reviews.map((product_review: Product_Review) => {
+            const user = product_review.User;
+            const createdAtLocal = new Date(
+              product_review.createdAt
+            ).toLocaleString("en-GB");
+
+            return (
+              <div class="comment">
+                <div class="comment_header">
+                  <div class="comment_header-pic" />
+                  <h2>
+                    {user.first_name !== undefined
+                      ? user.first_name + " " + user.last_name
+                      : user.username}
+                  </h2>
+                </div>
+                <div class="comment_content">
+                  <p>
+                    <Rating total="5" active={product_review.rating}>
+                      <Icon slot="active" name="codicon:star-full" />
+                      <Icon slot="half" name="codicon:star-half" />
+                      <Icon slot="disabled" name="codicon:star-empty" />
+                    </Rating>
+                  </p>
+                  <p>{product_review.review_text}</p>
+                </div>
+                <div class="comment_footer">
+                  <span>{createdAtLocal}</span>
+                </div>
+              </div>
+            );
+          })
+        )
+      }
+    </section>
+
+    <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+
+    <h2>Similar Products</h2>
+    <section class="max-width">
+      <section class="similar-products">
+        {
+          randomRecommendedProducts.map((product: Product) => (
+            <ProductCard
+              uuid={product.uuid}
+              image_src={product.image_src}
+              category={product.category}
+              name={product.name}
+              price={product.price}
+              quantity={product.quantity}
+              advertisable={product.advertisable}
+              average_rating={product.average_rating}
+            />
+          ))
+        }
+      </section>
+    </section>
+    <div id="recentlyViewedContainer"></div>
+  </main>
+</MainLayout>
+<style>
+  #main-content {
+    overflow-x: hidden;
+  }
+  .img-zoom-container {
+    width: fit-content;
+  }
+  .heart {
+    position: relative;
+    inset: 0;
+  }
+  meter {
+    width: 200px;
+  }
+  [astro-icon] {
+    width: 24px;
+    color: var(--clr-accent-400);
+  }
+  .product-name-full {
+    font-size: clamp(0.95rem, 1.4vw, 1.5rem);
+    font-weight: var(--fw-bold);
+    margin-block: 0.5rem;
+    text-transform: capitalize;
+  }
+  .product-section,
+  .similar-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-inline: 1rem;
+  }
+  @media (width <900px) {
+    .product-info {
+      margin-top: 1rem;
+    }
+  }
+  h2 {
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  .product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    [astro-icon="mdi:cart"] {
+      color: white;
+    }
+    .add-to-cart:where(:hover, :focus-visible) [astro-icon="mdi:cart"] {
+      color: black;
+    }
+  }
+
+  .product-description {
+    white-space: pre-line;
+    max-width: 65ch;
+    line-height: 2;
+  }
+  .review-summary {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    text-align: center;
+    .average-rating {
+      font-size: clamp(1.5rem, 2.5vw, 3.5rem);
+      font-weight: var(--fw-bold);
+      opacity: 0.7;
+    }
+    @media (width < 500px) {
+      flex-direction: column;
+    }
+  }
+  .flex {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+  }
+  .rate-wrapper {
+    @media (width < 1050px) {
+      flex-direction: column;
+    }
+  }
+  .no-reviews {
+    margin-block: 3rem;
+    text-align: center;
+  }
+  .rating {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 45dvw), 1fr));
+    gap: 1rem;
+    margin-inline: 1.5rem;
+    margin-block: 2rem;
+    & .comment:not(:nth-child(even)):last-child {
+      grid-column: span 2;
+      @media (width < 640px) {
+        grid-column: auto;
+      }
+    }
+  }
+  .comment {
+    justify-content: center;
+    background-color: var(--clr-primary-700);
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 2rem;
+    border-radius: 0.5rem;
+    text-align: left;
+  }
+
+  .comment_header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .comment_header-pic {
+    display: flex;
+    width: 25px;
+    height: 25px;
+    background-color: var(--clr-neutral-200);
+    border-radius: 50%;
+  }
+
+  .comment_header h2 {
+    font-size: 18px;
+    font-weight: bold;
+    color: white;
+    margin-bottom: 0px;
+    margin-left: 10px;
+  }
+
+  .comment_content {
+    font-size: 16px;
+    color: white;
+  }
+
+  .comment_footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .comment_footer span {
+    margin-top: 0.5rem;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--clr-secondary-100);
+  }
+</style>
+
+<script>
+  import { addProductToCart_Wishlist } from "src/scripts/addProductToCart_Wishlist";
+  addProductToCart_Wishlist(".product-section");
+</script>

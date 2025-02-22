@@ -1,0 +1,80 @@
+---
+import MainLayout from "../../layouts/MainLayout.astro";
+import Auction from "db/models/Auction";
+import { getAllAuctions } from "@api/auctions/loadAllAuctions";
+import AuctionCard from "@components/cards/AuctionCard.astro";
+import SpecialLetter from "@components/utilities/SpecialLetter.astro";
+const response: Response = await getAllAuctions();
+if (!response.ok)
+  return new Response(null, {
+    status: 404,
+    statusText: "Page Not found",
+  });
+const auctions: Auction[] = await response.json();
+---
+
+<MainLayout
+  title="Auction Page | Technoworld"
+  description="Page, which is used for bidding on a special product's prices">
+  <main class="| max-width">
+    <div class="section-title">
+      <h2 class="title">
+        <SpecialLetter number={1} letter="h" />
+        <SpecialLetter number={2} letter="o" />
+        <SpecialLetter number={3} letter="t" />
+        &nbsp;
+        <SpecialLetter number={4} letter="a" />
+        <SpecialLetter number={5} letter="u" />
+        <SpecialLetter number={6} letter="c" />
+        <SpecialLetter number={7} letter="t" />
+        <SpecialLetter number={8} letter="i" />
+        <SpecialLetter number={9} letter="o" />
+        <SpecialLetter number={10} letter="n" />
+        <SpecialLetter number={11} letter="s" />
+      </h2>
+    </div>
+    <p class="note" style="margin-bottom: 1rem;">
+      <strong>*Note:</strong> You can only bid in US Dollars(1 USD = 1.82 ЛВ = 0.93
+      EUR)
+    </p>
+    <section class="auctions">
+      {
+        auctions.map((auction) => {
+          const start_time = new Date(auction.start_time);
+          start_time.setHours(start_time.getHours() - 2);
+
+          const end_time = new Date(auction.end_time);
+          end_time.setHours(end_time.getHours() - 2);
+
+          return (
+            <AuctionCard
+              uuid={auction.auction_uuid}
+              start_time={start_time}
+              end_time={end_time}
+              name={auction.name}
+              product_uuid={auction.product_uuid}
+              bid_counter={auction.bid_counter}
+              current_highest_bid={
+                auction.current_highest_bid !== null
+                  ? auction.current_highest_bid.toFixed(2)
+                  : auction.initial_price.toFixed(2)
+              }
+              purchase_price={auction.purchase_price}
+            />
+          );
+        })
+      }
+    </section>
+  </main>
+</MainLayout>
+
+<style>
+  .auctions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(270px, 100%), 1fr));
+    place-items: center;
+    gap: 1rem;
+  }
+</style>
+
+<script></script>

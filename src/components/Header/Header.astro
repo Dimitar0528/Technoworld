@@ -1,0 +1,34 @@
+---
+import HeaderTop from "./SubHeaders/HeaderTop.astro";
+import HeaderCenter from "./SubHeaders/HeaderCenter.astro";
+import HeaderBottom from "./SubHeaders/HeaderBottom.astro";
+---
+
+<header class="header" id="header">
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  <HeaderTop text="Welcome Users!" />
+  <HeaderCenter />
+  <HeaderBottom />
+</header>
+<style>
+  .header {
+    background-color: var(--clr-primary-800);
+    position: relative;
+    .skip-link {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 99;
+      text-align: center;
+      background-color: var(--clr-accent-600);
+      color: var(--clr-neutral-100);
+      padding: 0.5rem;
+      translate: 0 -100%;
+      transition: translate 150ms ease-in-out;
+      &:focus {
+        translate: 0;
+      }
+    }
+  }
+</style>

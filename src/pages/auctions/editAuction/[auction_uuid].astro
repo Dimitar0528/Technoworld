@@ -1,0 +1,246 @@
+---
+import MainHead from "@layouts/MainHead.astro";
+import { slide } from "astro:transitions";
+import { verifyToken } from '@api/users/verifyToken';
+const userToken = await verifyToken(Astro.request)
+ const {userRole } = userToken ?? {};
+if(userRole === 'user') return Astro.redirect("/");
+import { Image } from "astro:assets";
+import { getAuction } from "@api/auctions/getAuction/[auction_uuid]";
+
+import type Auction from "db/models/Auction";
+const auctionResponse = await getAuction(Astro);
+const auction: Auction = await auctionResponse.json();
+const {auction_uuid,name,description,initial_price,minimum_bid_increment_percentage,start_time,end_time,product_uuid} = auction
+const start_locale_time = new Date(start_time).toISOString().slice(0,16);
+const end_locale_time = new Date(end_time).toISOString().slice(0,16);
+
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<MainHead title="Edit an Auction | Technoworld" description="A page which is used to create auctions by the admin"/>
+  <main id="main-content" transition:animate={slide({duration: '.5s'})}>
+    <form>
+      <h1 style="text-align: center; margin-top: .4rem">Edit an Auction</h1>
+      <label for="name">Auction Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Enter name..." value={name} />
+         
+         <label for="description">Auction Description</label>
+       <textarea name="description" id="description" placeholder="Enter description..." value={description}></textarea>
+
+        <div class="wrapper">
+          <div class="flex">
+            <label for="price">Initial Price</label>
+            <input
+            maxlength="6"
+              type="text"
+              id="price"
+              name="price"
+              class="small"
+              placeholder="Enter starting price..." 
+              pattern="[0-9]*"
+              title="Please enter numbers only" value={initial_price}/>
+          </div>
+             <div class="flex">
+               <label for="increment">Min bid increment %</label>
+                <input type="number"  min="5" max="20" name="increment" class="small" id="increment" pattern="[0-9]*" title="Please enter numbers only" placeholder="Enter Min bid increment %..." value={minimum_bid_increment_percentage}>
+             </div>
+        </div>
+        <div class="wrapper">
+            <div class="flex">
+                <label for="start-time">Start Time</label>
+                <input type="datetime-local" name="start-time" id="start-time" class="small"> 
+            </div>
+            <div class="flex">
+                <label for="end-time">End Time</label>
+                <input type="datetime-local" name="end-time" id="end-time" class="small">
+            </div>
+        </div>
+      </div>
+
+      <input type="submit" value="Edit an Auction" />
+    </form>
+    <Image src="https://geauction.com/wp-content/uploads/2018/07/5-Auction-Tips-for-Beginners2.jpg" alt="Default" width='1000' height='500' loading='eager'>
+
+  </main>
+
+</html>
+
+<style>
+  *,*::before,*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+  background-image: linear-gradient(to left bottom, #7c0685, #6a0487, #56078a, #3b0c8c, #05118d);
+    color: hsl(0, 0%, 100%);
+    overflow-x: hidden;
+    line-height: 2.1;   
+  }
+  main{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    place-items: center;
+  }
+  @media (width < 1100px){
+    main{
+      grid-template-columns: repeat(1,1fr);
+      
+    }
+  }
+  img{
+    max-width: 100%;
+    height: 100%;
+  }
+  form {
+    display: grid;
+    place-items: center;
+  }
+
+  label {
+    font-weight: 500;
+    margin-top: 1rem;
+    font-size: 1.2rem;
+  }
+  @keyframes shake {
+  0% {
+    margin-left: 0rem;
+  }
+  25% {
+    margin-left: 0.5rem;
+  }
+  75% {
+    margin-left: -0.5rem;
+  }
+  100% {
+    margin-left: 0rem;
+  }
+}
+
+input:invalid {
+  animation: shake 0.2s ease-in-out 0s 2;
+  box-shadow: 0 0 0.6rem #ff0000;
+}
+
+.wrapper{
+  display: flex;
+  gap: 1rem;
+}
+  .flex {
+    display: flex;
+    align-items: center;
+   flex-direction: column;
+  }
+    form .small{
+   width: max(160px, 5rem);
+  }
+  input[type="text"],
+    input[type="number"],
+  input[type="datetime-local"],
+
+  .select, textarea {
+    padding: 0.5rem 1rem;
+    width: max(500px, 20rem);
+    margin: 0.5rem 0;
+    border: 3px solid black;
+  border-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cstyle%3Epath%7Banimation:stroke 40s infinite linear%3B%7D%40keyframes stroke%7Bto%7Bstroke-dashoffset:776%3B%7D%7D%3C/style%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232d3561' /%3E%3Cstop offset='25%25' stop-color='%23c05c7e' /%3E%3Cstop offset='50%25' stop-color='%23f3826f' /%3E%3Cstop offset='100%25' stop-color='%23ffb961' /%3E%3C/linearGradient%3E %3Cpath d='M1.5 1.5 l97 0l0 97l-97 0 l0 -97' stroke-linecap='square' stroke='url(%23g)' stroke-width='3' stroke-dasharray='388'/%3E %3C/svg%3E") 1;
+    border-radius: 4px;
+    box-sizing: border-box;
+    caret-color: hsl(358, 72%, 50%);
+  }
+  input[type="text"]:where(:focus), textarea:where(:focus){
+    outline: transparent;
+  }
+  textarea{
+    white-space: pre-line;
+    resize: none;
+    height: 147px;
+  }
+    @media (width < 720px) {
+   input[type="text"],
+  input[type="datetime-local"],
+
+  .select, textarea {
+    width: max(350px, 20rem);
+  }
+    }
+
+  input[type="submit"] {
+    background-color: hsl(296, 91%, 27%);
+    color: white;
+    padding: 0.8rem 2rem;
+    margin-top: 1.5rem;
+    margin-bottom: .5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  input[type="submit"]:where(:hover, :focus-visible) {
+    background-color: hsl(296, 91%, 87%);
+   color: black;;
+  }
+</style>
+<script define:vars={{auction_uuid,description,start_locale_time,end_locale_time}} >
+  const form = document.querySelector("form");
+  const inputs = document.querySelectorAll("input[type=text],input[type=number], input[type=datetime-local], select, textarea")
+  const nameInput = document.getElementById("name");
+  const descriptionInput = document.getElementById("description") ;
+  const initialPriceInput = document.getElementById("price");
+  const incrementInput = document.getElementById("increment");
+  const startTimeInput = document.getElementById("start-time");
+  const endTimeInput = document.getElementById("end-time");
+  const productInput = document.getElementById("product");
+  const productInputs = Array.from(inputs)
+ 
+  descriptionInput.value = description;
+  startTimeInput.value = start_locale_time;
+  endTimeInput.value = end_locale_time;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Prevent the form from submitting and reloading the page
+
+    // Validate inputs
+    const isEmpty = productInputs.some(
+      (input) => input.value.trim() === ""
+    );
+    if (isEmpty)
+      return alert("Some of the inputs are empty! Please fill them up.");
+    
+
+
+    const auction = {
+      name: nameInput.value,
+      description: descriptionInput.value,
+      initial_price:initialPriceInput.value,
+      minimum_bid_increment_percentage:incrementInput.value,
+      start_time:startTimeInput.value,
+      end_time:endTimeInput.value,
+    };
+try {
+      const response = await fetch(`/api/auctions/editAuction/${auction_uuid}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(auction),
+      });
+
+      if (response.ok) {
+        alert("Congratulations! The auction was successfully edited!");
+        window.location.href = "/";
+      } else {
+        console.error("Error adding product:", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+   
+  });
+</script> 

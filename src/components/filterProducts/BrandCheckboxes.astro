@@ -1,0 +1,20 @@
+---
+import type Product from "db/models/Product";
+import CheckBoxes from "./checkboxes/Checkboxes.astro";
+const brands = ['asus','acer','apple','broter','corsair','dell','edifier','gplay','grigs','genesis','jvc','kivi','hp','hisense','hyperx','nintendo','lenovo','lg','logitech','microsoft','motorola','nothing', 'panasonic','PHILIPS','razer','sony','samsung','smarttech', 'telefunken','thomson','valve', 'xbox','xiaomi'];
+const {products,filteredProducts} = Astro.props;
+
+function countBrands(products: Product[]) {
+  // Count occurrences of each brand in product names
+  const brandCounts: { [key: string]: number } = brands.reduce((counts, brand) => {
+    const brandLowerCase = brand.toLowerCase();
+    counts[brand] = products.reduce((total, product) => {
+      const productNameLowerCase = product.name.toLowerCase();
+      return total + (productNameLowerCase.includes(brandLowerCase) ? 1 : 0);
+    }, 0);
+    return counts;
+  }, {});
+  return brandCounts;
+}
+---
+<CheckBoxes headerName="Brands" cssClass="brand-checkbox" filterArray={brands} paramName="brands" product_quantity={countBrands(products)} relative_product_quantity={countBrands(filteredProducts)}/>

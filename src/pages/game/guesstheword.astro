@@ -1,0 +1,181 @@
+---
+import Layout from "../../layouts/MainLayout.astro";
+---
+
+<Layout title="Secret Game | Technoworld" description="Page showing our little puzzle game">
+  <div id="game-container">
+    <h1>Guess the word</h1>
+    <div id="word-container"></div>
+    <div id="guesses-container">
+      <p>Incorrect Guesses: <span id="incorrect-guesses"></span></p>
+      <p>Chances Remaining: <span id="chances">6</span></p>
+    </div>
+    <div id="keyboard"></div>
+    <button id="restart-button">New Game</button>
+  </div>
+</Layout>
+
+<style>
+  #word-container {
+    margin-top: 1rem;
+    font-size: 30px;
+  }
+
+  #guesses-container {
+    margin-top: 20px;
+    font-size: 20px;
+  }
+
+  #keyboard {
+    margin-top: 40px;
+    display: grid;
+    grid-template-columns: repeat(5, 55px);
+    gap: 10px;
+  }
+
+  #incorrect-guesses {
+    font-weight: bold;
+  }
+
+  #chances {
+    font-weight: bold;
+    color: red;
+  }
+
+  #game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-block: 1rem;
+  }
+
+  #restart-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+
+  #restart-button:hover {
+    background-color: #45a049;
+  }
+</style>
+
+<script>
+  // Array of words for the game
+const words: string[] = ["hangman", "neon", "trolled", "technoworld"];
+
+// Function to choose a random word from the array
+function getRandomWord(): string {
+  return words[Math.floor(Math.random() * words.length)];
+}
+
+let selectedWord: string = "";
+let guessedWord: string[] = [];
+let incorrectGuesses: string[] = [];
+let chances: number = 6;
+
+function displayWord(): void {
+  const wordContainer = document.getElementById(
+    "word-container"
+  ) as HTMLDivElement;
+  wordContainer.textContent = guessedWord.join(" ");
+}
+function handleGuess(letter: string, button: HTMLButtonElement): void {
+  if (guessedWord.includes(letter) || incorrectGuesses.includes(letter)) {
+    return; // Already guessed this letter
+  }
+
+  if (selectedWord.includes(letter)) {
+    updateGuessedWord(letter);
+  } else {
+    handleIncorrectGuess(letter);
+  }
+
+  displayWord();
+  updateIncorrectGuesses();
+  checkGameStatus();
+
+  // Disable the button after it has been clicked
+  button.disabled = true;
+}
+
+function displayKeyboard(): void {
+  const keyboard = document.getElementById("keyboard") as HTMLDivElement;
+  keyboard.innerHTML = "";
+
+  for (let i = 65; i <= 90; i++) {
+    const letter = String.fromCharCode(i);
+    const button = document.createElement("button");
+    StyleButton(button);
+    button.textContent = letter;
+    button.addEventListener("click", () => handleGuess(letter, button));
+    keyboard.appendChild(button);
+  }
+}
+function StyleButton(button: HTMLButtonElement): void {
+  let styleString = `background:var(--clr-neutral-100); color: black;
+    padding: .5rem; cursor: pointer;
+    `;
+  button.setAttribute("style", styleString);
+}
+function updateGuessedWord(letter: string): void {
+  for (let i = 0; i < selectedWord.length; i++) {
+    if (selectedWord[i] === letter) {
+      guessedWord[i] = letter;
+    }
+  }
+}
+
+function handleIncorrectGuess(letter: string): void {
+  incorrectGuesses.push(letter);
+  chances--;
+  updateChances();
+}
+
+function updateIncorrectGuesses(): void {
+  const incorrectGuessesElement = document.getElementById(
+    "incorrect-guesses"
+  ) as HTMLSpanElement;
+  incorrectGuessesElement.textContent = incorrectGuesses.join(", ");
+}
+
+function updateChances(): void {
+  const chancesElement = document.getElementById("chances") as HTMLSpanElement;
+  chancesElement.textContent = chances.toString();
+}
+
+function setupGame(): void {
+  selectedWord = getRandomWord().toUpperCase();
+  guessedWord = Array(selectedWord.length).fill("_");
+  incorrectGuesses = [];
+  chances = 6;
+
+  displayWord();
+  displayKeyboard();
+  updateIncorrectGuesses();
+  updateChances();
+}
+
+function checkGameStatus(): void {
+  if (!guessedWord.includes("_")) {
+    alert(`Congratulations! You won! The word was indeed ${selectedWord}`);
+    setupGame();
+  } else if (chances === 0) {
+    alert(`Game Over! The word was "${selectedWord}"`);
+    setupGame();
+  }
+}
+
+// New game button event listener
+const restartButton = document.getElementById(
+  "restart-button"
+) as HTMLButtonElement;
+restartButton.addEventListener("click", () => setupGame());
+
+setupGame();
+
+</script>

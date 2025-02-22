@@ -1,0 +1,299 @@
+---
+import MainHead from "@layouts/MainHead.astro";
+import { slide } from "astro:transitions";
+import { verifyToken } from '@api/users/verifyToken';
+const userToken = await verifyToken(Astro.request)
+ const {userRole } = userToken ?? {};
+if(userRole === 'user') return Astro.redirect("/");
+import { Image } from "astro:assets";
+import { GetAllBiddableProducts } from "@api/auctions/loadAllBiddableProducts";
+import type Product from "db/models/Product";
+   const response: Response = await GetAllBiddableProducts();
+ if(!response.ok) return new Response(null, {
+    status: 404,
+    statusText: 'Page Not found'
+  });
+ const biddableProducts: Product[] = await response.json();
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<MainHead title="Create an Auction | Technoworld" description="A page which is used to create auctions by the admin"/>
+  <main id="main-content" transition:animate={slide({duration: '.5s'})}>
+    <form>
+      <h1 style="text-align: center; margin-top: .4rem">Create an Auction</h1>
+      <label for="name">Auction Name</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Enter name..." />
+         
+         <label for="description">Auction Description</label>
+       <textarea name="description" id="description" placeholder="Enter description..." ></textarea>
+
+        <div class="wrapper">
+          <div class="flex">
+            <label for="price">Initial Price</label>
+            <input
+            maxlength="6"
+              type="text"
+              id="price"
+              name="price"
+              class="small"
+              placeholder="Enter starting price..." 
+              pattern="[0-9]*"
+              title="Please enter numbers only"/>
+          </div>
+             <div class="flex">
+               <label for="increment">Min bid increment %</label>
+                <input type="number"  min="5" max="15" name="increment" class="small" id="increment" pattern="[0-9]*" title="Please enter numbers only" placeholder="Enter Min bid increment %...">
+             </div>
+        </div>
+        <div class="wrapper">
+            <div class="flex">
+                <label for="start-time">Start Time</label>
+                <input type="datetime-local" name="start-time" id="start-time" class="small">
+            </div>
+            <div class="flex">
+                <label for="end-time">End Time</label>
+                <input type="datetime-local" name="end-time" id="end-time" class="small">
+            </div>
+        </div>
+          <div class="wrapper">
+            <div class="flex">
+              <label for="price">Product Category</label>
+              <select id="category" class="select | small">
+                <option value=""> -- Select One --</option>
+                <option value="laptops">Laptops</option>
+                <option value="desktops">Desktops</option>
+                <option value="consoles">Consoles</option>
+                <option value="smartphones">Smartphones</option>
+                <option value="accessories">Accessories</option>
+                <option value="tvs">TVs</option>
+
+              </select>
+            </div>
+            
+             <div class="flex">
+               <label for="product">Product to Auction</label>
+                <select id="product" name="category" class="select | small">
+                           <option value=""> -- First Select Category --</option>
+                      </select>
+                      
+             </div>
+          </div>
+      </div>
+
+      <input type="submit" value="Create an Auction" />
+    </form>
+    <Image src="https://geauction.com/wp-content/uploads/2018/07/5-Auction-Tips-for-Beginners2.jpg" alt="Default" width='1000' height='500' loading='eager'>
+
+  </main>
+
+</html>
+
+<style>
+  *,*::before,*::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+  background-image: linear-gradient(to left bottom, #7c0685, #6a0487, #56078a, #3b0c8c, #05118d);
+    color: hsl(0, 0%, 100%);
+    overflow-x: hidden;
+    line-height: 1.23;   
+  }
+  main{
+    display: grid;
+    grid-template-columns: repeat(2,1fr);
+    place-items: center;
+  }
+  @media (width < 1100px){
+    main{
+      grid-template-columns: repeat(1,1fr);
+      
+    }
+  }
+  img{
+    max-width: 100%;
+    height: 100%;
+  }
+  form {
+    display: grid;
+    place-items: center;
+  }
+
+  label {
+    font-weight: 500;
+    margin-top: 1rem;
+    font-size: 1.2rem;
+  }
+  @keyframes shake {
+  0% {
+    margin-left: 0rem;
+  }
+  25% {
+    margin-left: 0.5rem;
+  }
+  75% {
+    margin-left: -0.5rem;
+  }
+  100% {
+    margin-left: 0rem;
+  }
+}
+
+input:invalid {
+  animation: shake 0.2s ease-in-out 0s 2;
+  box-shadow: 0 0 0.6rem #ff0000;
+}
+
+.wrapper{
+  display: flex;
+  gap: 1rem;
+}
+  .flex {
+    display: flex;
+    align-items: center;
+   flex-direction: column;
+  }
+    form .small{
+   width: max(160px, 5rem);
+  }
+  input[type="text"],
+  input[type="number"],
+  input[type="datetime-local"],
+
+  .select, textarea {
+    padding: 0.5rem 1rem;
+    width: max(500px, 20rem);
+    margin: 0.5rem 0;
+    border: 3px solid black;
+  border-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='100' height='100' viewBox='0 0 100 100' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Cstyle%3Epath%7Banimation:stroke 40s infinite linear%3B%7D%40keyframes stroke%7Bto%7Bstroke-dashoffset:776%3B%7D%7D%3C/style%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='0%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%232d3561' /%3E%3Cstop offset='25%25' stop-color='%23c05c7e' /%3E%3Cstop offset='50%25' stop-color='%23f3826f' /%3E%3Cstop offset='100%25' stop-color='%23ffb961' /%3E%3C/linearGradient%3E %3Cpath d='M1.5 1.5 l97 0l0 97l-97 0 l0 -97' stroke-linecap='square' stroke='url(%23g)' stroke-width='3' stroke-dasharray='388'/%3E %3C/svg%3E") 1;
+    border-radius: 4px;
+    box-sizing: border-box;
+    caret-color: hsl(358, 72%, 50%);
+  }
+  input[type="text"]:where(:focus), textarea:where(:focus){
+    outline: transparent;
+  }
+  textarea{
+    white-space: pre-line;
+    resize: none;
+    height: 147px;
+  }
+    @media (width < 720px) {
+   input[type="text"],
+  input[type="datetime-local"],
+
+  .select, textarea {
+    width: max(350px, 20rem);
+  }
+    }
+
+  input[type="submit"] {
+    background-color: hsl(296, 91%, 27%);
+    color: white;
+    padding: 0.8rem 2rem;
+    margin-top: 1.5rem;
+    margin-bottom: .5rem;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  input[type="submit"]:where(:hover, :focus-visible) {
+    background-color: hsl(296, 91%, 87%);
+   color: black;;
+  }
+</style>
+<script  define:vars={{biddableProducts}} >
+const categorySelect = document.getElementById('category');
+const productSelect = document.getElementById('product');
+
+function updateProductOptions() {
+  const selectedCategory = categorySelect.value;
+  const filteredProducts = biddableProducts.filter(product => product.category === selectedCategory);
+
+  // Clear existing options before adding new ones
+  productSelect.innerHTML = '<option value=""> -- First Select Category --</option>';
+
+  filteredProducts.forEach(product => {
+    // Check if an option with the same value already exists
+    const existingOption = Array.from(productSelect.options).find(option => option.value === product.uuid);
+
+    if (!existingOption) {
+      const option = document.createElement('option');
+      option.value = product.uuid;
+      option.textContent = product.name;
+      productSelect.appendChild(option);
+    }
+  });
+}
+
+categorySelect.addEventListener('change', updateProductOptions);
+
+
+  async function CreateProduct(){
+    
+  const form = document.querySelector("form");
+  const inputs = document.querySelectorAll("input[type=text],input[type=number], input[type=datetime-local], select, textarea")
+  const nameInput = document.getElementById("name");
+  const descriptionInput = document.getElementById("description") ;
+  const initialPriceInput = document.getElementById("price");
+  const incrementInput = document.getElementById("increment");
+  const startTimeInput = document.getElementById("start-time");
+  const endTimeInput = document.getElementById("end-time");
+  const categoryInput = document.getElementById("category");
+  const productInput = document.getElementById("product");
+  const productInputs = Array.from(inputs)
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // Prevent the form from submitting and reloading the page
+
+    // Validate inputs
+    const isEmpty = productInputs.some(
+      (input) => input.value.trim() === ""
+    );
+    if (isEmpty)
+      return alert("Some of the inputs are empty! Please fill them up.");
+    
+
+
+    const product = {
+      auction_uuid: crypto.randomUUID(),
+      name: nameInput.value,
+      description: descriptionInput.value,
+      initial_price:initialPriceInput.value,
+      minimum_bid_increment_percentage:incrementInput.value,
+      start_time:startTimeInput.value,
+      end_time:endTimeInput.value,
+      product_uuid:productInput.value,
+      current_highest_bidder: null,
+    };
+try {
+      const response = await fetch(`/api/auctions/createAuction`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+
+      if (response.ok) {
+        alert("Congratulations! The auction was successfully created!");
+        window.location.href = "/";
+      } else {
+        console.error("Error adding product:", response.status);
+      }
+    } catch (error) {
+      console.error("An error occurred:", error);
+    }
+   
+  });
+  }
+ CreateProduct();
+  document.addEventListener("astro:before-swap",CreateProduct)
+</script> 
